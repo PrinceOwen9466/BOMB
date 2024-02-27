@@ -26,20 +26,8 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 	address private constant ADDR_FACTORY = 0xF5c7d9733e5f53abCC1695820c4818C59B457C2C;
 	address internal constant ADDR_DEAD = 0x000000000000000000000000000000000000dEaD;
 
-	// TODO: Define defaults for these fields
-	address public autoLiquidityReceiver;
-	address public treasuryReceiver;
-	address public safuuInsuranceFundReceiver;
-	address public firePit;
-	address public pairAddress;
-
-	uint256 public liquidityFee = 40;
-	uint256 public treasuryFee = 25;
-	uint256 public safuuInsuranceFundFee = 50;
-	uint256 public sellFee = 20;
-	uint256 public firePitFee = 25;
-	uint256 public totalFee = liquidityFee.add(treasuryFee).add(safuuInsuranceFundFee).add(firePitFee);
-	uint256 public feeDenominator = 1000;
+	uint256 public _feePercent = 99;
+	uint256 public reflectionBalance;
 
 	bool public _autoRebase;
 	bool public _autoAddLiquidity;
@@ -75,13 +63,11 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 		_pair = IPancakeSwapPair(_pairAddr);
 
 		_totalSupply = INITIAL_FRAGMENTS_SUPPLY;
-		_gonBalances[treasuryReceiver] = TOTAL_GONS;
 		_gonsPerFragment = TOTAL_GONS.div(_totalSupply);
 		_initRebaseStartTime = block.timestamp;
 		_lastRebasedTime = block.timestamp;
 		_autoRebase = true;
 		_autoAddLiquidity = true;
-		_isFeeExempt[treasuryReceiver] = true;
 		_isFeeExempt[address(this)] = true;
 	}
 
@@ -94,24 +80,6 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 		}
 	}
 
-	function setAutoAddLiquidity(bool _flag) external onlyOwner {
-		if (_flag) {
-			_autoAddLiquidity = _flag;
-			_lastAddLiquidityTime = block.timestamp;
-		} else {
-			_autoAddLiquidity = _flag;
-		}
-	}
-
-	function withdrawAllToTreasury() external swapping onlyOwner {
-		uint256 amountToSwap = _gonBalances[address(this)].div(_gonsPerFragment);
-		require(amountToSwap > 0, "There is no Safuu token deposited in token contract");
-		address[] memory path = new address[](2);
-		path[0] = address(this);
-		path[1] = _router.WETH();
-		_router.swapExactTokensForETHSupportingFeeOnTransferTokens(amountToSwap, 0, path, treasuryReceiver, block.timestamp);
-	}
-
 	function setWhitelist(address _addr) external onlyOwner {
 		_isFeeExempt[_addr] = true;
 	}
@@ -121,20 +89,8 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 		_blacklist[_botAddress] = _flag;
 	}
 
-	function setPairAddress(address _pairAddress) public onlyOwner {
-		pairAddress = _pairAddress;
-	}
-
-	function setFeeReceivers(
-		address _autoLiquidityReceiver,
-		address _treasuryReceiver,
-		address _safuuInsuranceFundReceiver,
-		address _firePit
-	) external onlyOwner {
-		autoLiquidityReceiver = _autoLiquidityReceiver;
-		treasuryReceiver = _treasuryReceiver;
-		safuuInsuranceFundReceiver = _safuuInsuranceFundReceiver;
-		firePit = _firePit;
+	function setFeePercentage(uint256 percent) external onlyOwner {
+		_feePercent = percent;
 	}
 
 	function isContract(address addr) internal view returns (bool) {
@@ -159,6 +115,11 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 
 	function shouldSwapBack() internal view returns (bool) {
 		return !_inSwap && msg.sender != _pairAddr;
+	}
+
+	function setLP(address _address) external onlyOwner {
+		_pairAddr = _address;
+		_pair = IPancakeSwapPair(_pairAddr);
 	}
 
 	event LogRebase(uint256 indexed epoch, uint256 totalSupply);

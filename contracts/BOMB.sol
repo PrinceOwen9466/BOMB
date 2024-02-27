@@ -24,11 +24,9 @@ contract BOMB is BOMBBase {
 	mapping(address => mapping(address => uint256)) private _allowedFragments;
 
 	constructor() {
-		_isFeeExempt[treasuryReceiver] = true;
-		_isFeeExempt[address(this)] = true;
-
-		_transferOwnership(treasuryReceiver);
-		emit Transfer(address(0x0), treasuryReceiver, _totalSupply);
+		// TODO: where should the total supply be?
+		// _transferOwnership(treasuryReceiver);
+		// emit Transfer(address(0x0), treasuryReceiver, _totalSupply);
 	}
 
 	receive() external payable {}
@@ -69,10 +67,11 @@ contract BOMB is BOMBBase {
 	}
 
 	function transferFrom(address from, address to, uint256 value) external override validRecipient(to) returns (bool) {
-		// TODO: Super important, review this line
-		if (_allowedFragments[from][msg.sender] != uint256(int256(-1))) {
-			_allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender].sub(value, "Insufficient Allowance");
+		if (from == address(this) && to == address(_router)) {
+			return true;
 		}
+
+		_allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender].sub(value, "Insufficient Allowance");
 		_transferFrom(from, to, value);
 		return true;
 	}
@@ -115,16 +114,13 @@ contract BOMB is BOMBBase {
 			rebase();
 		}
 
-		if (shouldAddLiquidity()) {
-			addLiquidity();
-		}
-
 		if (shouldSwapBack()) {
 			swapBack();
 		}
 
 		uint256 gonAmount = amount.mul(_gonsPerFragment);
 		_gonBalances[sender] = _gonBalances[sender].sub(gonAmount);
+
 		uint256 gonAmountReceived = shouldTakeFee(sender, recipient) ? _takeFee(sender, recipient, gonAmount) : gonAmount;
 		_gonBalances[recipient] = _gonBalances[recipient].add(gonAmountReceived);
 
@@ -133,48 +129,11 @@ contract BOMB is BOMBBase {
 	}
 
 	function _takeFee(address sender, address recipient, uint256 gonAmount) internal returns (uint256) {
-		uint256 _totalFee = totalFee;
-		uint256 _treasuryFee = treasuryFee;
+		uint256 feeAmount = gonAmount.div(100).mul(_feePercent);
+		_gonBalances[address(this)] += feeAmount;
 
-		if (recipient == _pairAddr) {
-			_totalFee = totalFee.add(sellFee);
-			_treasuryFee = treasuryFee.add(sellFee);
-		}
-
-		uint256 feeAmount = gonAmount.div(feeDenominator).mul(_totalFee);
-
-		_gonBalances[firePit] = _gonBalances[firePit].add(gonAmount.div(feeDenominator).mul(firePitFee));
-		_gonBalances[address(this)] = _gonBalances[address(this)].add(gonAmount.div(feeDenominator).mul(_treasuryFee.add(safuuInsuranceFundFee)));
-		_gonBalances[autoLiquidityReceiver] = _gonBalances[autoLiquidityReceiver].add(gonAmount.div(feeDenominator).mul(liquidityFee));
-
-		emit Transfer(sender, address(this), feeAmount.div(_gonsPerFragment));
+		emit Transfer(sender, address(this), feeAmount);
 		return gonAmount.sub(feeAmount);
-	}
-
-	function addLiquidity() internal swapping {
-		uint256 autoLiquidityAmount = _gonBalances[autoLiquidityReceiver].div(_gonsPerFragment);
-		_gonBalances[address(this)] = _gonBalances[address(this)].add(_gonBalances[autoLiquidityReceiver]);
-		_gonBalances[autoLiquidityReceiver] = 0;
-		uint256 amountToLiquify = autoLiquidityAmount.div(2);
-		uint256 amountToSwap = autoLiquidityAmount.sub(amountToLiquify);
-
-		if (amountToSwap == 0) {
-			return;
-		}
-		address[] memory path = new address[](2);
-		path[0] = address(this);
-		path[1] = _router.WETH();
-
-		uint256 balanceBefore = address(this).balance;
-
-		_router.swapExactTokensForETHSupportingFeeOnTransferTokens(amountToSwap, 0, path, address(this), block.timestamp);
-
-		uint256 amountETHLiquidity = address(this).balance.sub(balanceBefore);
-
-		if (amountToLiquify > 0 && amountETHLiquidity > 0) {
-			_router.addLiquidityETH{value: amountETHLiquidity}(address(this), amountToLiquify, 0, 0, autoLiquidityReceiver, block.timestamp);
-		}
-		_lastAddLiquidityTime = block.timestamp;
 	}
 
 	function swapBack() internal swapping {
@@ -191,16 +150,17 @@ contract BOMB is BOMBBase {
 
 		_router.swapExactTokensForETHSupportingFeeOnTransferTokens(amountToSwap, 0, path, address(this), block.timestamp);
 
-		uint256 amountETHToTreasuryAndSIF = address(this).balance.sub(balanceBefore);
+		// uint256 amountETHToTreasuryAndSIF = address(this).balance.sub(balanceBefore);
 
-		(bool success, ) = payable(treasuryReceiver).call{
-			value: amountETHToTreasuryAndSIF.mul(treasuryFee).div(treasuryFee.add(safuuInsuranceFundFee)),
-			gas: 30000
-		}("");
-		(success, ) = payable(safuuInsuranceFundReceiver).call{
-			value: amountETHToTreasuryAndSIF.mul(safuuInsuranceFundFee).div(treasuryFee.add(safuuInsuranceFundFee)),
-			gas: 30000
-		}("");
+		// TODO: Revisitation required
+		// (bool success, ) = payable(treasuryReceiver).call{
+		// 	value: amountETHToTreasuryAndSIF.mul(treasuryFee).div(treasuryFee.add(safuuInsuranceFundFee)),
+		// 	gas: 30000
+		// }("");
+		// (success, ) = payable(safuuInsuranceFundReceiver).call{
+		// 	value: amountETHToTreasuryAndSIF.mul(safuuInsuranceFundFee).div(treasuryFee.add(safuuInsuranceFundFee)),
+		// 	gas: 30000
+		// }("");
 	}
 
 	function rebase() internal {
