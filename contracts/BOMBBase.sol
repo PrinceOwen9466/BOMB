@@ -31,13 +31,15 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 
 	bool public _autoRebase;
 
-	address internal _pairAddr;
+	address public _pairAddr;
 	uint256 public _initRebaseStartTime;
 	uint256 public _lastRebasedTime;
 	uint256 public _totalSupply;
 	uint256 internal _gonsPerFragment;
 
 	uint256 internal _lastDistribution;
+
+	bool public _initComplete;
 
 	mapping(address => uint256) internal _gonBalances;
 	mapping(address => bool) internal _isHolder;
@@ -61,16 +63,28 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 	}
 
 	constructor() ERC20Detailed(NAME, SYM, DECIMALS) Ownable() {
-		_router = IPancakeSwapRouter(ADDR_ROUTER);
-		_pairAddr = IPancakeSwapFactory(_router.factory()).createPair(_router.WETH(), address(this));
-		_pair = IPancakeSwapPair(_pairAddr);
-
 		_totalSupply = INITIAL_FRAGMENTS_SUPPLY;
 		_gonsPerFragment = TOTAL_GONS.div(_totalSupply);
 		_initRebaseStartTime = block.timestamp;
 		_lastRebasedTime = block.timestamp;
 		_autoRebase = true;
 		_isFeeExempt[address(this)] = true;
+
+		_gonBalances[msg.sender] = _totalSupply;
+	}
+
+	function _init() external onlyOwner {
+		if (_initComplete) {
+			return;
+		}
+
+		_router = IPancakeSwapRouter(ADDR_ROUTER);
+		_pairAddr = IPancakeSwapFactory(_router.factory()).createPair(_router.WETH(), address(this));
+		_pair = IPancakeSwapPair(_pairAddr);
+	}
+
+	function _isExternalAddr(address addr) internal view returns (bool) {
+		return addr != address(this) && addr != address(_pair);
 	}
 
 	function _addBalance(address addr, uint256 sum) internal {
@@ -83,7 +97,7 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 
 	function _setBalance(address addr, uint256 balance) internal {
 		// LP and Contract cannot be holders
-		if (addr != address(_pair) && addr != address(this)) {
+		if (_isExternalAddr(addr)) {
 			if (_isHolder[addr] != true) {
 				_holders.push(addr);
 				_isHolder[addr] = true;

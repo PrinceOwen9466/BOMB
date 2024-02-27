@@ -1,0 +1,45 @@
+{
+	"compiler": {
+		"version": "0.8.24+commit.e11b9ed9"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/BOMB_flattened.sol": "SafeMath"
+		},
+		"evmVersion": "shanghai",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/BOMB_flattened.sol": {
+			"keccak256": "0x61923cb558dbf0a25b2d2f9cd831d7005b8487e4f8474cdea8575246cce3d171",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8025c37a52cc0967a7bd005612da6d48807c8b4ddd25084e0ee51a4f329aaed2",
+				"dweb:/ipfs/QmYy6bnVZeQuxzvDokfuWZqBtMt7eSjtGTLEQYjZYE24sT"
+			]
+		}
+	},
+	"version": 1
+}

@@ -1,16 +1,4 @@
 // SPDX-License-Identifier: MIT
-/*
- __    ____     _____            ____
-/\ \_ /\  _`\  /\  __`\  /'\_/`\/\  _`\
-\/'__`\ \ \L\ \\ \ \/\ \/\      \ \ \L\ \
-/\ \_\_\ \  _ <'\ \ \ \ \ \ \__\ \ \  _ <'
-\ \____ \ \ \L\ \\ \ \_\ \ \ \_/\ \ \ \L\ \
- \/\ \_\ \ \____/ \ \_____\ \_\\ \_\ \____/
-  \ `\_ _/\/___/   \/_____/\/_/ \/_/\/___/
-   `\_/\_\
-      \/_/
-*/
-
 pragma solidity ^0.8.24;
 
 import "./BOMBBase.sol";
@@ -22,8 +10,6 @@ contract BOMB is BOMBBase {
 	using SafeMathInt for int256;
 
 	mapping(address => mapping(address => uint256)) private _allowedFragments;
-
-	constructor() {}
 
 	receive() external payable {}
 
@@ -115,14 +101,14 @@ contract BOMB is BOMBBase {
 
 		_subBalance(sender, gonAmount);
 
-		uint256 gonAmountReceived = shouldTakeFee(sender, recipient) ? _takeFee(sender, recipient, gonAmount) : gonAmount;
+		uint256 gonAmountReceived = shouldTakeFee(sender, recipient) ? _takeFee(sender, gonAmount) : gonAmount;
 		_addBalance(recipient, gonAmountReceived);
 
 		emit Transfer(sender, recipient, gonAmountReceived.div(_gonsPerFragment));
 		return true;
 	}
 
-	function _takeFee(address sender, address recipient, uint256 gonAmount) internal returns (uint256) {
+	function _takeFee(address sender, uint256 gonAmount) internal returns (uint256) {
 		uint256 feeAmount = gonAmount.div(100).mul(_feePercent);
 		_addBalance(address(this), feeAmount);
 

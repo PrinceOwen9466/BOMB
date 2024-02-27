@@ -95,7 +95,7 @@ contract BlastFurnace is Context, Ownable {
 		payable(msg.sender).transfer(SafeMath.sub(eggValue, fee));
 	}
 
-	function beanRewards(address adr) public view returns (uint256) {
+	function furnaceRewards(address adr) public view returns (uint256) {
 		uint256 hasEggs = getMyEggs(adr);
 		uint256 eggValue = calculateEggSell(hasEggs);
 		return eggValue;
