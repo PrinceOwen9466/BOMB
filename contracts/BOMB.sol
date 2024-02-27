@@ -17,16 +17,12 @@ contract BOMB is BOMBBase {
 		return _isFeeExempt[_addr];
 	}
 
-	function getCirculatingSupply() public view returns (uint256) {
-		return (TOTAL_GONS.sub(_gonBalances[ADDR_DEAD]).sub(_gonBalances[address(0)])).div(_gonsPerFragment);
-	}
-
 	function isNotInSwap() external view returns (bool) {
 		return !_inSwap;
 	}
 
 	function manualSync() external {
-		IPancakeSwapPair(_pairAddr).sync();
+		IPancakeSwapPair(address(_pair)).sync();
 	}
 
 	function totalSupply() external view override returns (uint256) {
@@ -34,7 +30,7 @@ contract BOMB is BOMBBase {
 	}
 
 	function balanceOf(address who) external view override returns (uint256) {
-		return _gonBalances[who].div(_gonsPerFragment);
+		return _balances[who];
 	}
 
 	function approve(address spender, uint256 value) external override returns (bool) {
@@ -80,10 +76,8 @@ contract BOMB is BOMBBase {
 	}
 
 	function _basicTransfer(address from, address to, uint256 amount) internal returns (bool) {
-		uint256 gonAmount = amount.mul(_gonsPerFragment);
-
-		_subBalance(from, gonAmount);
-		_addBalance(to, gonAmount);
+		_subBalance(from, amount);
+		_addBalance(to, amount);
 		return true;
 	}
 
@@ -94,30 +88,29 @@ contract BOMB is BOMBBase {
 			return _basicTransfer(sender, recipient, amount);
 		}
 		if (shouldRebase()) {
-			rebase();
+			_rebase();
 		}
 
-		uint256 gonAmount = amount.mul(_gonsPerFragment);
+		_subBalance(sender, amount);
 
-		_subBalance(sender, gonAmount);
+		uint256 amountReceived = shouldTakeFee(sender, recipient) ? _takeFee(sender, amount) : amount;
+		_addBalance(recipient, amountReceived);
 
-		uint256 gonAmountReceived = shouldTakeFee(sender, recipient) ? _takeFee(sender, gonAmount) : gonAmount;
-		_addBalance(recipient, gonAmountReceived);
+		emit Transfer(sender, recipient, amountReceived);
 
-		emit Transfer(sender, recipient, gonAmountReceived.div(_gonsPerFragment));
-		return true;
-	}
-
-	function _takeFee(address sender, uint256 gonAmount) internal returns (uint256) {
-		uint256 feeAmount = gonAmount.div(100).mul(_feePercent);
-		_addBalance(address(this), feeAmount);
-
-		if (_lastDistribution + _distributionInterval >= block.timestamp) {
+		if (shouldDistribute()) {
 			_distribute();
 		}
 
+		return true;
+	}
+
+	function _takeFee(address sender, uint256 amount) internal returns (uint256) {
+		uint256 feeAmount = amount.div(100).mul(_feePercent);
+		_addBalance(address(this), feeAmount);
 		emit Transfer(sender, address(this), feeAmount);
-		return gonAmount.sub(feeAmount);
+
+		return amount.sub(feeAmount);
 	}
 
 	function _distribute() internal {
@@ -128,8 +121,8 @@ contract BOMB is BOMBBase {
 		uint256 supply = _totalSupply;
 
 		_lastDistribution = block.timestamp;
-		uint256 funds = _gonBalances[address(this)];
-		_gonBalances[address(this)] = 0;
+		uint256 funds = _balances[address(this)];
+		_balances[address(this)] = 0;
 
 		for (uint i = 0; i < _holders.length; i++) {
 			holder = _holders[i];
@@ -138,7 +131,7 @@ contract BOMB is BOMBBase {
 				continue;
 			}
 
-			cut = _gonBalances[holder].mul(funds).div(supply);
+			cut = _balances[holder].mul(funds).div(supply);
 			distributed += cut;
 
 			if (cut > 0) {
@@ -151,7 +144,7 @@ contract BOMB is BOMBBase {
 		_addBalance(address(this), rem);
 	}
 
-	function rebase() internal {
+	function _rebase() internal {
 		if (_inSwap) return;
 		uint256 rebaseRate;
 		uint256 deltaTimeFromInit = block.timestamp - _initRebaseStartTime;
@@ -173,9 +166,7 @@ contract BOMB is BOMBBase {
 			_totalSupply = _totalSupply.mul((10 ** RATE_DECIMALS).add(rebaseRate)).div(10 ** RATE_DECIMALS);
 		}
 
-		_gonsPerFragment = TOTAL_GONS.div(_totalSupply);
 		_lastRebasedTime = _lastRebasedTime.add(times.mul(15 minutes));
-
 		_pair.sync();
 
 		emit LogRebase(epoch, _totalSupply);

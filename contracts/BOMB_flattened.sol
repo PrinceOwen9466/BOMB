@@ -10,7 +10,6 @@
    `\_/\_\
       \/_/
 */
-
 // File: contracts/libraries/SafeMathInt.sol
 
 
@@ -670,8 +669,7 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 
 	uint256 private constant MAX_UINT256 = ~uint256(0);
 	uint256 private constant MAX_SUPPLY = 325 * 10 ** 7 * 10 ** DECIMALS;
-	uint256 private constant INITIAL_FRAGMENTS_SUPPLY = 325 * 10 ** 3 * 10 ** DECIMALS;
-	uint256 internal constant TOTAL_GONS = MAX_UINT256 - (MAX_UINT256 % INITIAL_FRAGMENTS_SUPPLY);
+	uint256 private constant INITIAL_SUPPLY = 325 * 10 ** 3 * 10 ** DECIMALS;
 
 	address private constant ADDR_ROUTER = 0xd7f655E3376cE2D7A2b08fF01Eb3B1023191A901;
 	address private constant ADDR_FACTORY = 0xF5c7d9733e5f53abCC1695820c4818C59B457C2C;
@@ -682,21 +680,19 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 
 	bool public _autoRebase;
 
-	address public _pairAddr;
 	uint256 public _initRebaseStartTime;
 	uint256 public _lastRebasedTime;
 	uint256 public _totalSupply;
-	uint256 internal _gonsPerFragment;
 
 	uint256 internal _lastDistribution;
 
 	bool public _initComplete;
 
-	mapping(address => uint256) internal _gonBalances;
-	mapping(address => bool) internal _isHolder;
+	mapping(address => uint256) internal _balances;
+	mapping(address => bool) private _isHolder;
 	mapping(address => bool) internal _isFeeExempt;
 	mapping(address => bool) public _blacklist;
-	address[] _holders;
+	address[] internal _holders;
 
 	IPancakeSwapRouter internal _router;
 	IPancakeSwapPair internal _pair;
@@ -714,24 +710,16 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 	}
 
 	constructor() ERC20Detailed(NAME, SYM, DECIMALS) Ownable() {
-		_totalSupply = INITIAL_FRAGMENTS_SUPPLY;
-		_gonsPerFragment = TOTAL_GONS.div(_totalSupply);
+		_totalSupply = INITIAL_SUPPLY;
 		_initRebaseStartTime = block.timestamp;
 		_lastRebasedTime = block.timestamp;
 		_autoRebase = true;
 		_isFeeExempt[address(this)] = true;
 
-		_gonBalances[msg.sender] = _totalSupply;
-	}
-
-	function _init() external onlyOwner {
-		if (_initComplete) {
-			return;
-		}
-
 		_router = IPancakeSwapRouter(ADDR_ROUTER);
-		_pairAddr = IPancakeSwapFactory(_router.factory()).createPair(_router.WETH(), address(this));
-		_pair = IPancakeSwapPair(_pairAddr);
+
+		_balances[msg.sender] = _totalSupply;
+		emit Transfer(address(this), msg.sender, _totalSupply);
 	}
 
 	function _isExternalAddr(address addr) internal view returns (bool) {
@@ -739,11 +727,11 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 	}
 
 	function _addBalance(address addr, uint256 sum) internal {
-		_setBalance(addr, _gonBalances[addr].add(sum));
+		_setBalance(addr, _balances[addr].add(sum));
 	}
 
 	function _subBalance(address addr, uint256 diff) internal {
-		_setBalance(addr, _gonBalances[addr].sub(diff));
+		_setBalance(addr, _balances[addr].sub(diff));
 	}
 
 	function _setBalance(address addr, uint256 balance) internal {
@@ -755,7 +743,7 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 			}
 		}
 
-		_gonBalances[addr] = balance;
+		_balances[addr] = balance;
 	}
 
 	function setAutoRebase(bool _flag) external onlyOwner {
@@ -789,16 +777,19 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 	}
 
 	function shouldTakeFee(address from, address to) internal view returns (bool) {
-		return (_pairAddr == from || _pairAddr == to) && !_isFeeExempt[from];
+		return (address(_pair) == from || address(_pair) == to) && !_isFeeExempt[from];
 	}
 
 	function shouldRebase() internal view returns (bool) {
-		return _autoRebase && (_totalSupply < MAX_SUPPLY) && msg.sender != _pairAddr && !_inSwap && block.timestamp >= (_lastRebasedTime + 15 minutes);
+		return _autoRebase && (_totalSupply < MAX_SUPPLY) && msg.sender != address(_pair) && !_inSwap && block.timestamp >= (_lastRebasedTime + 15 minutes);
 	}
 
-	function setLP(address _address) external onlyOwner {
-		_pairAddr = _address;
-		_pair = IPancakeSwapPair(_pairAddr);
+	function shouldDistribute() internal view returns (bool) {
+		return _balances[address(this)] > 0 && block.timestamp >= _lastDistribution + _distributionInterval;
+	}
+
+	function setLP(address addr) external onlyOwner {
+		_pair = IPancakeSwapPair(addr);
 	}
 
 	function setDistributeInterval(uint256 interval) external onlyOwner {
@@ -828,16 +819,12 @@ contract BOMB is BOMBBase {
 		return _isFeeExempt[_addr];
 	}
 
-	function getCirculatingSupply() public view returns (uint256) {
-		return (TOTAL_GONS.sub(_gonBalances[ADDR_DEAD]).sub(_gonBalances[address(0)])).div(_gonsPerFragment);
-	}
-
 	function isNotInSwap() external view returns (bool) {
 		return !_inSwap;
 	}
 
 	function manualSync() external {
-		IPancakeSwapPair(_pairAddr).sync();
+		IPancakeSwapPair(address(_pair)).sync();
 	}
 
 	function totalSupply() external view override returns (uint256) {
@@ -845,7 +832,7 @@ contract BOMB is BOMBBase {
 	}
 
 	function balanceOf(address who) external view override returns (uint256) {
-		return _gonBalances[who].div(_gonsPerFragment);
+		return _balances[who];
 	}
 
 	function approve(address spender, uint256 value) external override returns (bool) {
@@ -891,10 +878,10 @@ contract BOMB is BOMBBase {
 	}
 
 	function _basicTransfer(address from, address to, uint256 amount) internal returns (bool) {
-		uint256 gonAmount = amount.mul(_gonsPerFragment);
+		// uint256 gonAmount = amount.mul(_gonsPerFragment);
 
-		_subBalance(from, gonAmount);
-		_addBalance(to, gonAmount);
+		_subBalance(from, amount);
+		_addBalance(to, amount);
 		return true;
 	}
 
@@ -905,30 +892,31 @@ contract BOMB is BOMBBase {
 			return _basicTransfer(sender, recipient, amount);
 		}
 		if (shouldRebase()) {
-			rebase();
+			_rebase();
 		}
 
-		uint256 gonAmount = amount.mul(_gonsPerFragment);
+		// uint256 gonAmount = amount.mul(_gonsPerFragment);
 
-		_subBalance(sender, gonAmount);
+		_subBalance(sender, amount);
 
-		uint256 gonAmountReceived = shouldTakeFee(sender, recipient) ? _takeFee(sender, gonAmount) : gonAmount;
-		_addBalance(recipient, gonAmountReceived);
+		uint256 amountReceived = shouldTakeFee(sender, recipient) ? _takeFee(sender, amount) : amount;
+		_addBalance(recipient, amountReceived);
 
-		emit Transfer(sender, recipient, gonAmountReceived.div(_gonsPerFragment));
-		return true;
-	}
+		emit Transfer(sender, recipient, amountReceived);
 
-	function _takeFee(address sender, uint256 gonAmount) internal returns (uint256) {
-		uint256 feeAmount = gonAmount.div(100).mul(_feePercent);
-		_addBalance(address(this), feeAmount);
-
-		if (_lastDistribution + _distributionInterval >= block.timestamp) {
+		if (shouldDistribute()) {
 			_distribute();
 		}
 
+		return true;
+	}
+
+	function _takeFee(address sender, uint256 amount) internal returns (uint256) {
+		uint256 feeAmount = amount.div(100).mul(_feePercent);
+		_addBalance(address(this), feeAmount);
 		emit Transfer(sender, address(this), feeAmount);
-		return gonAmount.sub(feeAmount);
+
+		return amount.sub(feeAmount);
 	}
 
 	function _distribute() internal {
@@ -939,8 +927,8 @@ contract BOMB is BOMBBase {
 		uint256 supply = _totalSupply;
 
 		_lastDistribution = block.timestamp;
-		uint256 funds = _gonBalances[address(this)];
-		_gonBalances[address(this)] = 0;
+		uint256 funds = _balances[address(this)];
+		_balances[address(this)] = 0;
 
 		for (uint i = 0; i < _holders.length; i++) {
 			holder = _holders[i];
@@ -949,7 +937,7 @@ contract BOMB is BOMBBase {
 				continue;
 			}
 
-			cut = _gonBalances[holder].mul(funds).div(supply);
+			cut = _balances[holder].mul(funds).div(supply);
 			distributed += cut;
 
 			if (cut > 0) {
@@ -962,7 +950,7 @@ contract BOMB is BOMBBase {
 		_addBalance(address(this), rem);
 	}
 
-	function rebase() internal {
+	function _rebase() internal {
 		if (_inSwap) return;
 		uint256 rebaseRate;
 		uint256 deltaTimeFromInit = block.timestamp - _initRebaseStartTime;
@@ -984,9 +972,7 @@ contract BOMB is BOMBBase {
 			_totalSupply = _totalSupply.mul((10 ** RATE_DECIMALS).add(rebaseRate)).div(10 ** RATE_DECIMALS);
 		}
 
-		_gonsPerFragment = TOTAL_GONS.div(_totalSupply);
 		_lastRebasedTime = _lastRebasedTime.add(times.mul(15 minutes));
-
 		_pair.sync();
 
 		emit LogRebase(epoch, _totalSupply);
