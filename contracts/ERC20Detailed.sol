@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+import "./interfaces/IERC20.sol";
+
 abstract contract ERC20Detailed is IERC20 {
 	string private _name;
 	string private _symbol;

@@ -16,7 +16,9 @@
 `----'              `--`---'                                 `----'                                      `--`---'     `----'    `----'
 */
 
-pragma solidity 0.8.9;
+pragma solidity ^0.8.24;
+import "./Ownable.sol";
+import "./libraries/SafeMath.sol";
 
 /**
  * @dev Provides information about the current execution context, including the
@@ -35,51 +37,6 @@ abstract contract Context {
 
 	function _msgData() internal view virtual returns (bytes calldata) {
 		return msg.data;
-	}
-}
-
-contract Ownable is Context {
-	address private _owner;
-
-	event OwnershipTransferred(
-		address indexed previousOwner,
-		address indexed newOwner
-	);
-
-	/**
-	 * @dev Initializes the contract setting the deployer as the initial owner.
-	 */
-	constructor() {
-		address msgSender = _msgSender();
-		_owner = msgSender;
-		emit OwnershipTransferred(address(0), msgSender);
-	}
-
-	/**
-	 * @dev Returns the address of the current owner.
-	 */
-	function owner() public view returns (address) {
-		return _owner;
-	}
-
-	modifier onlyOwner() {
-		require(_owner == _msgSender(), "Ownable: caller is not the owner");
-		_;
-	}
-
-	function renounceOwnership() public onlyOwner {
-		emit OwnershipTransferred(_owner, address(0));
-		_owner = address(0);
-	}
-
-	function transferOwnership(address newOwner) public onlyOwner {
-		_transferOwnership(newOwner);
-	}
-
-	function _transferOwnership(address newOwner) internal {
-		require(newOwner != address(0), "Ownable: new owner is the zero address");
-		emit OwnershipTransferred(_owner, newOwner);
-		_owner = newOwner;
 	}
 }
 
@@ -109,26 +66,18 @@ contract BlastFurnace is Context, Ownable {
 			ref = address(0);
 		}
 
-		if (
-			referrals[msg.sender] == address(0) && referrals[msg.sender] != msg.sender
-		) {
+		if (referrals[msg.sender] == address(0) && referrals[msg.sender] != msg.sender) {
 			referrals[msg.sender] = ref;
 		}
 
 		uint256 eggsUsed = getMyEggs(msg.sender);
 		uint256 newMiners = SafeMath.div(eggsUsed, EGGS_TO_HATCH_1MINERS);
-		hatcheryMiners[msg.sender] = SafeMath.add(
-			hatcheryMiners[msg.sender],
-			newMiners
-		);
+		hatcheryMiners[msg.sender] = SafeMath.add(hatcheryMiners[msg.sender], newMiners);
 		claimedEggs[msg.sender] = 0;
 		lastHatch[msg.sender] = block.timestamp;
 
 		//send referral eggs
-		claimedEggs[referrals[msg.sender]] = SafeMath.add(
-			claimedEggs[referrals[msg.sender]],
-			SafeMath.div(eggsUsed, 8)
-		);
+		claimedEggs[referrals[msg.sender]] = SafeMath.add(claimedEggs[referrals[msg.sender]], SafeMath.div(eggsUsed, 8));
 
 		//boost market to nerf miners hoarding
 		marketEggs = SafeMath.add(marketEggs, SafeMath.div(eggsUsed, 5));
@@ -154,10 +103,7 @@ contract BlastFurnace is Context, Ownable {
 
 	function buyEggs(address ref) public payable {
 		require(initialized);
-		uint256 eggsBought = calculateEggBuy(
-			msg.value,
-			SafeMath.sub(address(this).balance, msg.value)
-		);
+		uint256 eggsBought = calculateEggBuy(msg.value, SafeMath.sub(address(this).balance, msg.value));
 		eggsBought = SafeMath.sub(eggsBought, devFee(eggsBought));
 		uint256 fee = devFee(msg.value);
 		recAdd.transfer(fee);
@@ -165,32 +111,15 @@ contract BlastFurnace is Context, Ownable {
 		hatchEggs(ref);
 	}
 
-	function calculateTrade(
-		uint256 rt,
-		uint256 rs,
-		uint256 bs
-	) private view returns (uint256) {
-		return
-			SafeMath.div(
-				SafeMath.mul(PSN, bs),
-				SafeMath.add(
-					PSNH,
-					SafeMath.div(
-						SafeMath.add(SafeMath.mul(PSN, rs), SafeMath.mul(PSNH, rt)),
-						rt
-					)
-				)
-			);
+	function calculateTrade(uint256 rt, uint256 rs, uint256 bs) private view returns (uint256) {
+		return SafeMath.div(SafeMath.mul(PSN, bs), SafeMath.add(PSNH, SafeMath.div(SafeMath.add(SafeMath.mul(PSN, rs), SafeMath.mul(PSNH, rt)), rt)));
 	}
 
 	function calculateEggSell(uint256 eggs) public view returns (uint256) {
 		return calculateTrade(eggs, marketEggs, address(this).balance);
 	}
 
-	function calculateEggBuy(
-		uint256 eth,
-		uint256 contractBalance
-	) public view returns (uint256) {
+	function calculateEggBuy(uint256 eth, uint256 contractBalance) public view returns (uint256) {
 		return calculateTrade(eth, contractBalance, marketEggs);
 	}
 
@@ -221,10 +150,7 @@ contract BlastFurnace is Context, Ownable {
 	}
 
 	function getEggsSinceLastHatch(address adr) public view returns (uint256) {
-		uint256 secondsPassed = min(
-			EGGS_TO_HATCH_1MINERS,
-			SafeMath.sub(block.timestamp, lastHatch[adr])
-		);
+		uint256 secondsPassed = min(EGGS_TO_HATCH_1MINERS, SafeMath.sub(block.timestamp, lastHatch[adr]));
 		return SafeMath.mul(secondsPassed, hatcheryMiners[adr]);
 	}
 
