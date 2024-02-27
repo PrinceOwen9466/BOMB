@@ -1,0 +1,36 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js init
+
+PATH: 
+  C:\cmder\bin;C:\cmder\vendor\bin;C:\Users\Prince\.dotnet\tools\.store\powershell\7.3.4\powershell\7.3.4\tools\net7.0\any\win;C:\cmder\vendor\conemu-maximus5\ConEmu\Scripts;C:\cmder\vendor\conemu-maximus5;C:\cmder\vendor\conemu-maximus5\ConEmu;C:\Python311\Scripts\;C:\Python311\;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Util;C:\Windows;C:\Windows\system32;C:\Program Files\Microsoft\jdk-11.0.16.101-hotspot\bin;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files\dotnet\;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\Program Files (x86)\WinSCP\;C:\Program Files\PuTTY\;C:\Users\Prince\AppData\Local\Programs\Python\Python310;C:\Users\Prince\AppData\Local\Programs\Python\Python310\Scripts;C:\Program Files (x86)\Yarn\bin\;C:\xampp\php;C:\Users\Prince\AppData\Local\Microsoft\WindowsApps;C:\Users\Prince\.dotnet\tools;C:\Users\Prince\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\mitmproxy\bin;C:\Users\Prince\AppData\Roaming\npm;C:\Users\Prince\AppData\Local\Yarn\bin;C:\Users\Prince\AppData\Roaming\Composer\vendo;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\Geth\;C:\Program Files\Microsoft VS Code\bin;C:\MinGW\bin;C:\Program Files\nodejs\;C:\Program Files\GrunDotNetStandard;C:\Users\Prince\AppData\Local\Microsoft\WindowsApps;C:\Users\Prince\.dotnet\tools;C:\Program Files\mitmproxy\bin;C:\Users\Prince\AppData\Local\Yarn\bin;C:\Users\Prince\AppData\Roaming\Composer\vendor\bin;C:\Users\Prince\AppData\Local\atom\bin;C:\Users\Prince\AppData\Local\GitHubDesktop\bin;C:\Users\Prince\AppData\Roaming\npm;C:\Users\Prince\.dotnet\tools;C:\cmder
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  21.4.0
+
+Platform: 
+  win32 x64
+
+Trace: 
+  Error: canceled
+      at Interface.<anonymous> (C:\Program Files (x86)\Yarn\lib\cli.js:137150:13)
+      at Interface.emit (node:events:519:28)
+      at [_ttyWrite] [as _ttyWrite] (node:internal/readline/interface:1125:18)
+      at ReadStream.onkeypress (node:internal/readline/interface:264:20)
+      at ReadStream.emit (node:events:519:28)
+      at emitKeys (node:internal/readline/utils:371:14)
+      at emitKeys.next (<anonymous>)
+      at ReadStream.onData (node:internal/readline/emitKeypressEvents:64:36)
+      at ReadStream.emit (node:events:519:28)
+      at addChunk (node:internal/streams/readable:559:12)
+
+npm manifest: 
+  No manifest
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
