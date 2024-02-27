@@ -27,20 +27,23 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 	address internal constant ADDR_DEAD = 0x000000000000000000000000000000000000dEaD;
 
 	uint256 public _feePercent = 99;
-	uint256 public reflectionBalance;
+	uint256 public _distributionInterval = 10 minutes;
 
 	bool public _autoRebase;
-	bool public _autoAddLiquidity;
+
 	address internal _pairAddr;
 	uint256 public _initRebaseStartTime;
 	uint256 public _lastRebasedTime;
-	uint256 public _lastAddLiquidityTime;
 	uint256 public _totalSupply;
 	uint256 internal _gonsPerFragment;
 
+	uint256 internal _lastDistribution;
+
 	mapping(address => uint256) internal _gonBalances;
+	mapping(address => bool) internal _isHolder;
 	mapping(address => bool) internal _isFeeExempt;
 	mapping(address => bool) public _blacklist;
+	address[] _holders;
 
 	IPancakeSwapRouter internal _router;
 	IPancakeSwapPair internal _pair;
@@ -67,8 +70,27 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 		_initRebaseStartTime = block.timestamp;
 		_lastRebasedTime = block.timestamp;
 		_autoRebase = true;
-		_autoAddLiquidity = true;
 		_isFeeExempt[address(this)] = true;
+	}
+
+	function _addBalance(address addr, uint256 sum) internal {
+		_setBalance(addr, _gonBalances[addr].add(sum));
+	}
+
+	function _subBalance(address addr, uint256 diff) internal {
+		_setBalance(addr, _gonBalances[addr].sub(diff));
+	}
+
+	function _setBalance(address addr, uint256 balance) internal {
+		// LP and Contract cannot be holders
+		if (addr != address(_pair) && addr != address(this)) {
+			if (_isHolder[addr] != true) {
+				_holders.push(addr);
+				_isHolder[addr] = true;
+			}
+		}
+
+		_gonBalances[addr] = balance;
 	}
 
 	function setAutoRebase(bool _flag) external onlyOwner {
@@ -109,17 +131,13 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 		return _autoRebase && (_totalSupply < MAX_SUPPLY) && msg.sender != _pairAddr && !_inSwap && block.timestamp >= (_lastRebasedTime + 15 minutes);
 	}
 
-	function shouldAddLiquidity() internal view returns (bool) {
-		return _autoAddLiquidity && !_inSwap && msg.sender != _pairAddr && block.timestamp >= (_lastAddLiquidityTime + 2 days);
-	}
-
-	function shouldSwapBack() internal view returns (bool) {
-		return !_inSwap && msg.sender != _pairAddr;
-	}
-
 	function setLP(address _address) external onlyOwner {
 		_pairAddr = _address;
 		_pair = IPancakeSwapPair(_pairAddr);
+	}
+
+	function setDistributeInterval(uint256 interval) external onlyOwner {
+		_distributionInterval = interval;
 	}
 
 	event LogRebase(uint256 indexed epoch, uint256 totalSupply);
