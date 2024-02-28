@@ -9,7 +9,7 @@ contract BOMB is BOMBBase {
 	using SafeMath for uint256;
 	using SafeMathInt for int256;
 
-	mapping(address => mapping(address => uint256)) private _allowedFragments;
+	mapping(address => mapping(address => uint256)) private _allowance;
 
 	receive() external payable {}
 
@@ -19,6 +19,10 @@ contract BOMB is BOMBBase {
 
 	function isNotInSwap() external view returns (bool) {
 		return !_inSwap;
+	}
+
+	function pairAddress() external view returns (address) {
+		return address(_pair);
 	}
 
 	function manualSync() external {
@@ -34,7 +38,7 @@ contract BOMB is BOMBBase {
 	}
 
 	function approve(address spender, uint256 value) external override returns (bool) {
-		_allowedFragments[msg.sender][spender] = value;
+		_allowance[msg.sender][spender] = value;
 		emit Approval(msg.sender, spender, value);
 		return true;
 	}
@@ -49,29 +53,29 @@ contract BOMB is BOMBBase {
 			return true;
 		}
 
-		_allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender].sub(value, "Insufficient Allowance");
+		_allowance[from][msg.sender] = _allowance[from][msg.sender].sub(value, "Insufficient Allowance");
 		_transferFrom(from, to, value);
 		return true;
 	}
 
 	function allowance(address owner_, address spender) external view override returns (uint256) {
-		return _allowedFragments[owner_][spender];
+		return _allowance[owner_][spender];
 	}
 
 	function increaseAllowance(address spender, uint256 addedValue) external returns (bool) {
-		_allowedFragments[msg.sender][spender] = _allowedFragments[msg.sender][spender].add(addedValue);
-		emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
+		_allowance[msg.sender][spender] = _allowance[msg.sender][spender].add(addedValue);
+		emit Approval(msg.sender, spender, _allowance[msg.sender][spender]);
 		return true;
 	}
 
 	function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool) {
-		uint256 oldValue = _allowedFragments[msg.sender][spender];
+		uint256 oldValue = _allowance[msg.sender][spender];
 		if (subtractedValue >= oldValue) {
-			_allowedFragments[msg.sender][spender] = 0;
+			_allowance[msg.sender][spender] = 0;
 		} else {
-			_allowedFragments[msg.sender][spender] = oldValue.sub(subtractedValue);
+			_allowance[msg.sender][spender] = oldValue.sub(subtractedValue);
 		}
-		emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
+		emit Approval(msg.sender, spender, _allowance[msg.sender][spender]);
 		return true;
 	}
 

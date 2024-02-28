@@ -19,7 +19,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/BlastFurnace.sol": "Context"
+			"contracts/BlastFurnace_flattened.sol": "Context"
 		},
 		"evmVersion": "shanghai",
 		"libraries": {},
@@ -33,28 +33,11 @@
 		"remappings": []
 	},
 	"sources": {
-		"contracts/BlastFurnace.sol": {
-			"keccak256": "0xa3757865959344a90266360f1069d6a04e8c124e0c63660e3501d787c931cac9",
-			"license": "MIT",
+		"contracts/BlastFurnace_flattened.sol": {
+			"keccak256": "0xa9261ea3b401b61211dbfc993bcf872eccf8b5eb98377be528a29c2985338087",
 			"urls": [
-				"bzz-raw://44d1e1e71ba7e627e0cec59d4d3157185346ca0401e14f48dc7dc884b6420002",
-				"dweb:/ipfs/QmToJA9N7SqNfmVgJM17zfSWYGg4sPyf6TDVidUnqGWu3S"
-			]
-		},
-		"contracts/Ownable.sol": {
-			"keccak256": "0xafa70445c6f3c9ee3078932e981089b2b597a05fd2b37755046e4f82090b2a99",
-			"license": "MIT",
-			"urls": [
-				"bzz-raw://f75ed7ccf82e7f2a4cda6b4e307d279f9d7d37d510fdd0d175473ce020014728",
-				"dweb:/ipfs/QmQxnqNAfogYuQMtQ9GUun9VXX8TVt4a9cCHCmERMJzfWT"
-			]
-		},
-		"contracts/libraries/SafeMath.sol": {
-			"keccak256": "0x253745225d914ef5ab53ca81d88526a6e2591ff4dc44e602fa1481c14980e978",
-			"license": "MIT",
-			"urls": [
-				"bzz-raw://a535aa3d2394ca9cc933d940cf2395827b021d469afd17791f48d66b5147f4d1",
-				"dweb:/ipfs/QmPpAXfzRCzVe6JUrD1FZwNx7yCEW917QtG468a9uCFntG"
+				"bzz-raw://4827489f2e9d70f1b98e468b35694fbab9c5cbb8d7ec3ba415e74b359fa640d8",
+				"dweb:/ipfs/QmUheCP7XM1N2jyhqt7rStiy4RmWuzUcYq3MmmmP7p4L7c"
 			]
 		}
 	},

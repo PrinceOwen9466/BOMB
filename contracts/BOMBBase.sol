@@ -36,8 +36,6 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 
 	uint256 internal _lastDistribution;
 
-	bool public _initComplete;
-
 	mapping(address => uint256) internal _balances;
 	mapping(address => bool) private _isHolder;
 	mapping(address => bool) internal _isFeeExempt;
