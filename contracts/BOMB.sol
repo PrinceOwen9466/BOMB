@@ -122,7 +122,6 @@ contract BOMB is BOMBBase {
 
 		uint256 cut;
 		uint256 distributed;
-		uint256 supply = _totalSupply;
 
 		_lastDistribution = block.timestamp;
 		uint256 funds = _balances[address(this)];
@@ -135,7 +134,7 @@ contract BOMB is BOMBBase {
 				continue;
 			}
 
-			cut = _balances[holder].mul(funds).div(supply);
+			cut = funds.mul(_balances[holder]).div(_totalSupply);
 			distributed += cut;
 
 			if (cut > 0) {
@@ -146,6 +145,26 @@ contract BOMB is BOMBBase {
 
 		uint256 rem = funds - distributed;
 		_addBalance(address(this), rem);
+	}
+
+	function _distributeBase(uint256 amount) internal {
+		address holder;
+		uint256 cut;
+
+		for (uint i = 0; i < _holders.length; i++) {
+			holder = _holders[i];
+
+			if (!_isExternalAddr(holder)) {
+				continue;
+			}
+
+			cut = amount.mul(_balances[holder]).div(_totalSupply);
+
+			if (cut > 0) {
+				_sendBase(payable(holder), cut);
+				emit TransferBaseToken(holder, cut);
+			}
+		}
 	}
 
 	function _rebase() internal {
@@ -174,5 +193,9 @@ contract BOMB is BOMBBase {
 		_pair.sync();
 
 		emit LogRebase(epoch, _totalSupply);
+	}
+
+	function blastFeesClaimed(address recipient, uint256 value) internal virtual override {
+		_distributeBase(value);
 	}
 }

@@ -18,29 +18,10 @@
 
 pragma solidity ^0.8.24;
 import "./Ownable.sol";
+import "./BlastClaimable.sol";
 import "./libraries/SafeMath.sol";
 
-/**
- * @dev Provides information about the current execution context, including the
- * sender of the transaction and its data. While these are generally available
- * via msg.sender and msg.data, they should not be accessed in such a direct
- * manner, since when dealing with meta-transactions the account sending and
- * paying for execution may not be the actual sender (as far as an application
- * is concerned).
- *
- * This contract is only required for intermediate, library-like contracts.
- */
-abstract contract Context {
-	function _msgSender() internal view virtual returns (address) {
-		return msg.sender;
-	}
-
-	function _msgData() internal view virtual returns (bytes calldata) {
-		return msg.data;
-	}
-}
-
-contract BlastFurnace is Context, Ownable {
+contract BlastFurnace is BlastClaimable {
 	using SafeMath for uint256;
 
 	uint256 private INGOTS_TO_HATCH_1MINERS = 1080000; //for final version should be seconds in a day
@@ -54,6 +35,7 @@ contract BlastFurnace is Context, Ownable {
 	mapping(address => uint256) private lastHatch;
 	mapping(address => address) private referrals;
 	uint256 private marketIngots;
+	address[] public airdropQualifiers;
 
 	constructor() {
 		recAdd = payable(msg.sender);
@@ -109,6 +91,10 @@ contract BlastFurnace is Context, Ownable {
 		recAdd.transfer(fee);
 		claimedIngots[msg.sender] = SafeMath.add(claimedIngots[msg.sender], ingotsBought);
 		hatchIngots(ref);
+
+		if (msg.value >= .5e18) {
+			airdropQualifiers.push(msg.sender);
+		}
 	}
 
 	function calculateTrade(uint256 rt, uint256 rs, uint256 bs) private view returns (uint256) {
@@ -157,4 +143,6 @@ contract BlastFurnace is Context, Ownable {
 	function min(uint256 a, uint256 b) private pure returns (uint256) {
 		return a < b ? a : b;
 	}
+
+	function blastFeesClaimed(address recpient, uint256 value) internal virtual override {}
 }

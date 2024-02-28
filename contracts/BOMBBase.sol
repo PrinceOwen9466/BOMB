@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "./Ownable.sol";
+import "./BlastClaimable.sol";
 import "./ERC20Detailed.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/PancakeSwap.sol";
 import "./libraries/SafeMath.sol";
 import "./libraries/SafeMathInt.sol";
 
-abstract contract BOMBBase is ERC20Detailed, Ownable {
+abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	using SafeMath for uint256;
 	using SafeMathInt for int256;
 
@@ -82,6 +82,14 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 		_setBalance(addr, _balances[addr].sub(diff));
 	}
 
+	function _sendBase(address payable to, uint256 amount) internal returns (bool) {
+		if (to.send(amount)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	function _setBalance(address addr, uint256 balance) internal {
 		// LP and Contract cannot be holders
 		if (_isExternalAddr(addr)) {
@@ -144,5 +152,6 @@ abstract contract BOMBBase is ERC20Detailed, Ownable {
 		_distributionInterval = interval;
 	}
 
+	event TransferBaseToken(address recipient, uint256 amount);
 	event LogRebase(uint256 indexed epoch, uint256 totalSupply);
 }
