@@ -82,14 +82,6 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_setBalance(addr, _balances[addr].sub(diff));
 	}
 
-	function _sendBase(address payable to, uint256 amount) internal returns (bool) {
-		if (to.send(amount)) {
-			return true;
-		}
-
-		return false;
-	}
-
 	function _setBalance(address addr, uint256 balance) internal {
 		// LP and Contract cannot be holders
 		if (_isExternalAddr(addr)) {
@@ -140,8 +132,12 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		return _autoRebase && (_totalSupply < MAX_SUPPLY) && msg.sender != address(_pair) && !_inSwap && block.timestamp >= (_lastRebasedTime + 15 minutes);
 	}
 
+	function shouldSwapBack() internal view returns (bool) {
+		return !_inSwap && msg.sender != address(_pair);
+	}
+
 	function shouldDistribute() internal view returns (bool) {
-		return _balances[address(this)] > 0 && block.timestamp >= _lastDistribution + _distributionInterval;
+		return block.timestamp >= _lastDistribution + _distributionInterval;
 	}
 
 	function setLP(address addr) external onlyOwner {
@@ -152,6 +148,5 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_distributionInterval = interval;
 	}
 
-	event TransferBaseToken(address recipient, uint256 amount);
 	event LogRebase(uint256 indexed epoch, uint256 totalSupply);
 }

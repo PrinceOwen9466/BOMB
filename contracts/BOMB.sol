@@ -2,10 +2,11 @@
 pragma solidity ^0.8.24;
 
 import "./BOMBBase.sol";
+import "./NativeTransferable.sol";
 import "./libraries/SafeMath.sol";
 import "./libraries/SafeMathInt.sol";
 
-contract BOMB is BOMBBase {
+contract BOMB is BOMBBase, NativeTransferable {
 	using SafeMath for uint256;
 	using SafeMathInt for int256;
 
@@ -95,16 +96,20 @@ contract BOMB is BOMBBase {
 			_rebase();
 		}
 
+		if (shouldSwapBack()) {
+			_swapBack();
+		}
+
+		if (shouldDistribute()) {
+			_distributeNative(address(this).balance);
+		}
+
 		_subBalance(sender, amount);
 
 		uint256 amountReceived = shouldTakeFee(sender, recipient) ? _takeFee(sender, amount) : amount;
 		_addBalance(recipient, amountReceived);
 
 		emit Transfer(sender, recipient, amountReceived);
-
-		if (shouldDistribute()) {
-			_distribute();
-		}
 
 		return true;
 	}
@@ -117,37 +122,11 @@ contract BOMB is BOMBBase {
 		return amount.sub(feeAmount);
 	}
 
-	function _distribute() internal {
-		address holder;
-
-		uint256 cut;
-		uint256 distributed;
-
-		_lastDistribution = block.timestamp;
-		uint256 funds = _balances[address(this)];
-		_balances[address(this)] = 0;
-
-		for (uint i = 0; i < _holders.length; i++) {
-			holder = _holders[i];
-
-			if (holder == address(_pair) || holder == address(this)) {
-				continue;
-			}
-
-			cut = funds.mul(_balances[holder]).div(_totalSupply);
-			distributed += cut;
-
-			if (cut > 0) {
-				_addBalance(holder, cut);
-				emit Transfer(address(this), holder, cut);
-			}
+	function _distributeNative(uint256 amount) internal {
+		if (amount <= 0) {
+			return;
 		}
 
-		uint256 rem = funds - distributed;
-		_addBalance(address(this), rem);
-	}
-
-	function _distributeBase(uint256 amount) internal {
 		address holder;
 		uint256 cut;
 
@@ -161,8 +140,7 @@ contract BOMB is BOMBBase {
 			cut = amount.mul(_balances[holder]).div(_totalSupply);
 
 			if (cut > 0) {
-				_sendBase(payable(holder), cut);
-				emit TransferBaseToken(holder, cut);
+				_transferNative(holder, cut);
 			}
 		}
 	}
@@ -175,14 +153,14 @@ contract BOMB is BOMBBase {
 		uint256 times = deltaTime.div(15 minutes);
 		uint256 epoch = times.mul(15);
 
-		if (deltaTimeFromInit < (365 days)) {
-			rebaseRate = 2355;
-		} else if (deltaTimeFromInit >= (365 days)) {
-			rebaseRate = 211;
-		} else if (deltaTimeFromInit >= ((15 * 365 days) / 10)) {
-			rebaseRate = 14;
-		} else if (deltaTimeFromInit >= (7 * 365 days)) {
-			rebaseRate = 2;
+		if (deltaTimeFromInit > (3 * 365 days)) {
+			rebaseRate = 1;
+		} else if (deltaTimeFromInit >= (2 * 365 days)) {
+			rebaseRate = 19;
+		} else if (deltaTimeFromInit >= 365 days) {
+			rebaseRate = 191;
+		} else {
+			rebaseRate = 1915;
 		}
 
 		for (uint256 i = 0; i < times; i++) {
@@ -195,7 +173,21 @@ contract BOMB is BOMBBase {
 		emit LogRebase(epoch, _totalSupply);
 	}
 
-	function blastFeesClaimed(address recipient, uint256 value) internal virtual override {
-		_distributeBase(value);
+	function _swapBack() internal swapping {
+		uint256 amountToSwap = _balances[address(this)];
+
+		if (amountToSwap == 0) {
+			return;
+		}
+
+		address[] memory path = new address[](2);
+		path[0] = address(this);
+		path[1] = _router.WETH();
+
+		_router.swapExactTokensForETHSupportingFeeOnTransferTokens(amountToSwap, 0, path, address(this), block.timestamp);
+	}
+
+	function blastFeesClaimed(uint256 value) internal virtual override {
+		_distributeNative(value);
 	}
 }
