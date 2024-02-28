@@ -32,7 +32,7 @@ abstract contract BlastClaimable is Ownable {
 
 		if (claimed > 0) {
 			_feesClaimed += claimed;
-			blastFeesClaimed(recipient, claimed);
+			blastFeesClaimed(claimed);
 		}
 	}
 
@@ -40,5 +40,5 @@ abstract contract BlastClaimable is Ownable {
 		_blastClaimInterval = interval;
 	}
 
-	function blastFeesClaimed(address recipient, uint256 value) internal virtual;
+	function blastFeesClaimed(uint256 value) internal virtual;
 }

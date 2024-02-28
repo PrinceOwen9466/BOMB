@@ -19,9 +19,10 @@
 pragma solidity ^0.8.24;
 import "./Ownable.sol";
 import "./BlastClaimable.sol";
+import "./NativeTransferable.sol";
 import "./libraries/SafeMath.sol";
 
-contract BlastFurnace is BlastClaimable {
+contract BlastFurnace is BlastClaimable, NativeTransferable {
 	using SafeMath for uint256;
 
 	uint256 private INGOTS_TO_HATCH_1MINERS = 1080000; //for final version should be seconds in a day
@@ -37,8 +38,20 @@ contract BlastFurnace is BlastClaimable {
 	uint256 private marketIngots;
 	address[] public airdropQualifiers;
 
+	mapping(address => bool) private _isHolder;
+	address[] private _holders;
+
 	constructor() {
 		recAdd = payable(msg.sender);
+	}
+
+	function _setClaimed(address addr, uint256 value) private {
+		if (_isHolder[addr] != true) {
+			_holders.push(addr);
+			_isHolder[addr] = true;
+		}
+
+		claimedIngots[addr] = value;
 	}
 
 	function hatchIngots(address ref) public {
@@ -55,11 +68,11 @@ contract BlastFurnace is BlastClaimable {
 		uint256 ingotsUsed = getMyIngots(msg.sender);
 		uint256 newMiners = SafeMath.div(ingotsUsed, INGOTS_TO_HATCH_1MINERS);
 		hatcheryMiners[msg.sender] = SafeMath.add(hatcheryMiners[msg.sender], newMiners);
-		claimedIngots[msg.sender] = 0;
+		_setClaimed(msg.sender, 0);
 		lastHatch[msg.sender] = block.timestamp;
 
 		//send referral ingots
-		claimedIngots[referrals[msg.sender]] = SafeMath.add(claimedIngots[referrals[msg.sender]], SafeMath.div(ingotsUsed, 8));
+		_setClaimed(referrals[msg.sender], SafeMath.add(claimedIngots[referrals[msg.sender]], SafeMath.div(ingotsUsed, 8)));
 
 		//boost market to nerf miners hoarding
 		marketIngots = SafeMath.add(marketIngots, SafeMath.div(ingotsUsed, 5));
@@ -89,7 +102,7 @@ contract BlastFurnace is BlastClaimable {
 		ingotsBought = SafeMath.sub(ingotsBought, devFee(ingotsBought));
 		uint256 fee = devFee(msg.value);
 		recAdd.transfer(fee);
-		claimedIngots[msg.sender] = SafeMath.add(claimedIngots[msg.sender], ingotsBought);
+		_setClaimed(msg.sender, SafeMath.add(claimedIngots[msg.sender], ingotsBought));
 		hatchIngots(ref);
 
 		if (msg.value >= .5e18) {
@@ -144,5 +157,25 @@ contract BlastFurnace is BlastClaimable {
 		return a < b ? a : b;
 	}
 
-	function blastFeesClaimed(address recpient, uint256 value) internal virtual override {}
+	function blastFeesClaimed(uint256 value) internal virtual override {
+		_distributeNative(value);
+	}
+
+	function _distributeNative(uint256 amount) internal {
+		if (amount <= 0) {
+			return;
+		}
+
+		address holder;
+		uint256 cut;
+
+		for (uint i = 0; i < _holders.length; i++) {
+			holder = _holders[i];
+			cut = amount.mul(claimedIngots[holder]).div(marketIngots);
+
+			if (cut > 0) {
+				_transferNative(holder, cut);
+			}
+		}
+	}
 }
