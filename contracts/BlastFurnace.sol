@@ -43,23 +43,23 @@ abstract contract Context {
 contract BlastFurnace is Context, Ownable {
 	using SafeMath for uint256;
 
-	uint256 private EGGS_TO_HATCH_1MINERS = 1080000; //for final version should be seconds in a day
+	uint256 private INGOTS_TO_HATCH_1MINERS = 1080000; //for final version should be seconds in a day
 	uint256 private PSN = 10000;
 	uint256 private PSNH = 5000;
 	uint256 private devFeeVal = 3;
 	bool private initialized = false;
 	address payable private recAdd;
 	mapping(address => uint256) private hatcheryMiners;
-	mapping(address => uint256) private claimedEggs;
+	mapping(address => uint256) private claimedIngots;
 	mapping(address => uint256) private lastHatch;
 	mapping(address => address) private referrals;
-	uint256 private marketEggs;
+	uint256 private marketIngots;
 
 	constructor() {
 		recAdd = payable(msg.sender);
 	}
 
-	function hatchEggs(address ref) public {
+	function hatchIngots(address ref) public {
 		require(initialized);
 
 		if (ref == msg.sender) {
@@ -70,61 +70,61 @@ contract BlastFurnace is Context, Ownable {
 			referrals[msg.sender] = ref;
 		}
 
-		uint256 eggsUsed = getMyEggs(msg.sender);
-		uint256 newMiners = SafeMath.div(eggsUsed, EGGS_TO_HATCH_1MINERS);
+		uint256 ingotsUsed = getMyIngots(msg.sender);
+		uint256 newMiners = SafeMath.div(ingotsUsed, INGOTS_TO_HATCH_1MINERS);
 		hatcheryMiners[msg.sender] = SafeMath.add(hatcheryMiners[msg.sender], newMiners);
-		claimedEggs[msg.sender] = 0;
+		claimedIngots[msg.sender] = 0;
 		lastHatch[msg.sender] = block.timestamp;
 
-		//send referral eggs
-		claimedEggs[referrals[msg.sender]] = SafeMath.add(claimedEggs[referrals[msg.sender]], SafeMath.div(eggsUsed, 8));
+		//send referral ingots
+		claimedIngots[referrals[msg.sender]] = SafeMath.add(claimedIngots[referrals[msg.sender]], SafeMath.div(ingotsUsed, 8));
 
 		//boost market to nerf miners hoarding
-		marketEggs = SafeMath.add(marketEggs, SafeMath.div(eggsUsed, 5));
+		marketIngots = SafeMath.add(marketIngots, SafeMath.div(ingotsUsed, 5));
 	}
 
-	function sellEggs() public {
+	function sellIngots() public {
 		require(initialized);
-		uint256 hasEggs = getMyEggs(msg.sender);
-		uint256 eggValue = calculateEggSell(hasEggs);
-		uint256 fee = devFee(eggValue);
-		claimedEggs[msg.sender] = 0;
+		uint256 hasIngots = getMyIngots(msg.sender);
+		uint256 IngotValue = calculateIngotSell(hasIngots);
+		uint256 fee = devFee(IngotValue);
+		claimedIngots[msg.sender] = 0;
 		lastHatch[msg.sender] = block.timestamp;
-		marketEggs = SafeMath.add(marketEggs, hasEggs);
+		marketIngots = SafeMath.add(marketIngots, hasIngots);
 		recAdd.transfer(fee);
-		payable(msg.sender).transfer(SafeMath.sub(eggValue, fee));
+		payable(msg.sender).transfer(SafeMath.sub(IngotValue, fee));
 	}
 
 	function furnaceRewards(address adr) public view returns (uint256) {
-		uint256 hasEggs = getMyEggs(adr);
-		uint256 eggValue = calculateEggSell(hasEggs);
-		return eggValue;
+		uint256 hasIngots = getMyIngots(adr);
+		uint256 IngotValue = calculateIngotSell(hasIngots);
+		return IngotValue;
 	}
 
-	function buyEggs(address ref) public payable {
+	function buyIngots(address ref) public payable {
 		require(initialized);
-		uint256 eggsBought = calculateEggBuy(msg.value, SafeMath.sub(address(this).balance, msg.value));
-		eggsBought = SafeMath.sub(eggsBought, devFee(eggsBought));
+		uint256 ingotsBought = calculateIngotBuy(msg.value, SafeMath.sub(address(this).balance, msg.value));
+		ingotsBought = SafeMath.sub(ingotsBought, devFee(ingotsBought));
 		uint256 fee = devFee(msg.value);
 		recAdd.transfer(fee);
-		claimedEggs[msg.sender] = SafeMath.add(claimedEggs[msg.sender], eggsBought);
-		hatchEggs(ref);
+		claimedIngots[msg.sender] = SafeMath.add(claimedIngots[msg.sender], ingotsBought);
+		hatchIngots(ref);
 	}
 
 	function calculateTrade(uint256 rt, uint256 rs, uint256 bs) private view returns (uint256) {
 		return SafeMath.div(SafeMath.mul(PSN, bs), SafeMath.add(PSNH, SafeMath.div(SafeMath.add(SafeMath.mul(PSN, rs), SafeMath.mul(PSNH, rt)), rt)));
 	}
 
-	function calculateEggSell(uint256 eggs) public view returns (uint256) {
-		return calculateTrade(eggs, marketEggs, address(this).balance);
+	function calculateIngotSell(uint256 ingots) public view returns (uint256) {
+		return calculateTrade(ingots, marketIngots, address(this).balance);
 	}
 
-	function calculateEggBuy(uint256 eth, uint256 contractBalance) public view returns (uint256) {
-		return calculateTrade(eth, contractBalance, marketEggs);
+	function calculateIngotBuy(uint256 eth, uint256 contractBalance) public view returns (uint256) {
+		return calculateTrade(eth, contractBalance, marketIngots);
 	}
 
-	function calculateEggBuySimple(uint256 eth) public view returns (uint256) {
-		return calculateEggBuy(eth, address(this).balance);
+	function calculateIngotBuySimple(uint256 eth) public view returns (uint256) {
+		return calculateIngotBuy(eth, address(this).balance);
 	}
 
 	function devFee(uint256 amount) private view returns (uint256) {
@@ -132,9 +132,9 @@ contract BlastFurnace is Context, Ownable {
 	}
 
 	function seedMarket() public payable onlyOwner {
-		require(marketEggs == 0);
+		require(marketIngots == 0);
 		initialized = true;
-		marketEggs = 108000000000;
+		marketIngots = 108000000000;
 	}
 
 	function getBalance() public view returns (uint256) {
@@ -145,12 +145,12 @@ contract BlastFurnace is Context, Ownable {
 		return hatcheryMiners[adr];
 	}
 
-	function getMyEggs(address adr) public view returns (uint256) {
-		return SafeMath.add(claimedEggs[adr], getEggsSinceLastHatch(adr));
+	function getMyIngots(address adr) public view returns (uint256) {
+		return SafeMath.add(claimedIngots[adr], getIngotsSinceLastHatch(adr));
 	}
 
-	function getEggsSinceLastHatch(address adr) public view returns (uint256) {
-		uint256 secondsPassed = min(EGGS_TO_HATCH_1MINERS, SafeMath.sub(block.timestamp, lastHatch[adr]));
+	function getIngotsSinceLastHatch(address adr) public view returns (uint256) {
+		uint256 secondsPassed = min(INGOTS_TO_HATCH_1MINERS, SafeMath.sub(block.timestamp, lastHatch[adr]));
 		return SafeMath.mul(secondsPassed, hatcheryMiners[adr]);
 	}
 
