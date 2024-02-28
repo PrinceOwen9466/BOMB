@@ -39,6 +39,7 @@ contract BlastFurnace is BlastClaimable, NativeTransferable {
 	address[] public airdropQualifiers;
 
 	mapping(address => bool) private _isHolder;
+	mapping(address => bool) private _isAirDropQualifier;
 	address[] private _holders;
 
 	constructor() {
@@ -98,15 +99,20 @@ contract BlastFurnace is BlastClaimable, NativeTransferable {
 
 	function buyIngots(address ref) public payable {
 		require(initialized);
+		address buyer = msg.sender;
+
 		uint256 ingotsBought = calculateIngotBuy(msg.value, SafeMath.sub(address(this).balance, msg.value));
 		ingotsBought = SafeMath.sub(ingotsBought, devFee(ingotsBought));
 		uint256 fee = devFee(msg.value);
 		recAdd.transfer(fee);
-		_setClaimed(msg.sender, SafeMath.add(claimedIngots[msg.sender], ingotsBought));
+		_setClaimed(buyer, SafeMath.add(claimedIngots[buyer], ingotsBought));
 		hatchIngots(ref);
 
 		if (msg.value >= .5e18) {
-			airdropQualifiers.push(msg.sender);
+			if (_isAirDropQualifier[buyer] != true) {
+				_isAirDropQualifier[buyer] = true;
+				airdropQualifiers.push(buyer);
+			}
 		}
 	}
 
