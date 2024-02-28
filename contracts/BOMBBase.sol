@@ -29,6 +29,8 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	uint256 public _distributionInterval = 10 minutes;
 
 	bool public _autoRebase;
+	bool public _autoSwapBack;
+	bool public _autoDistribute;
 
 	uint256 public _initRebaseStartTime;
 	uint256 public _lastRebasedTime;
@@ -62,6 +64,7 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_initRebaseStartTime = block.timestamp;
 		_lastRebasedTime = block.timestamp;
 		_autoRebase = true;
+		_autoSwapBack = true;
 		_isFeeExempt[address(this)] = true;
 
 		_router = IPancakeSwapRouter(ADDR_ROUTER);
@@ -103,6 +106,22 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		}
 	}
 
+	function setAutoSwapBack(bool _flag) external onlyOwner {
+		if (_flag) {
+			_autoSwapBack = _flag;
+		} else {
+			_autoSwapBack = _flag;
+		}
+	}
+
+	function setAutoDistribute(bool _flag) external onlyOwner {
+		if (_flag) {
+			_autoDistribute = _flag;
+		} else {
+			_autoDistribute = _flag;
+		}
+	}
+
 	function setWhitelist(address _addr) external onlyOwner {
 		_isFeeExempt[_addr] = true;
 	}
@@ -133,11 +152,11 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	}
 
 	function shouldSwapBack() internal view returns (bool) {
-		return !_inSwap && msg.sender != address(_pair);
+		return _autoSwapBack && !_inSwap && msg.sender != address(_pair);
 	}
 
 	function shouldDistribute() internal view returns (bool) {
-		return block.timestamp >= _lastDistribution + _distributionInterval;
+		return _autoDistribute && block.timestamp >= _lastDistribution + _distributionInterval;
 	}
 
 	function setLP(address addr) external onlyOwner {

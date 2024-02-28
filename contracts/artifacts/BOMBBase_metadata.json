@@ -108,7 +108,46 @@
 			},
 			{
 				"inputs": [],
+				"name": "BLAST",
+				"outputs": [
+					{
+						"internalType": "contract IBlast",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "_autoDistribute",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "_autoRebase",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "_autoSwapBack",
 				"outputs": [
 					{
 						"internalType": "bool",
@@ -140,6 +179,19 @@
 			},
 			{
 				"inputs": [],
+				"name": "_blastClaimInterval",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "_distributionInterval",
 				"outputs": [
 					{
@@ -159,19 +211,6 @@
 						"internalType": "uint256",
 						"name": "",
 						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "_initComplete",
-				"outputs": [
-					{
-						"internalType": "bool",
-						"name": "",
-						"type": "bool"
 					}
 				],
 				"stateMutability": "view",
@@ -285,6 +324,13 @@
 			},
 			{
 				"inputs": [],
+				"name": "claimMyGasFees",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "decimals",
 				"outputs": [
 					{
@@ -350,7 +396,46 @@
 						"type": "bool"
 					}
 				],
+				"name": "setAutoDistribute",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bool",
+						"name": "_flag",
+						"type": "bool"
+					}
+				],
 				"name": "setAutoRebase",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bool",
+						"name": "_flag",
+						"type": "bool"
+					}
+				],
+				"name": "setAutoSwapBack",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "interval",
+						"type": "uint256"
+					}
+				],
+				"name": "setBlastClaimInterval",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -421,6 +506,19 @@
 					}
 				],
 				"name": "setWhitelist",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "blastAddr",
+						"type": "address"
+					}
+				],
+				"name": "setupBlast",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -582,11 +680,11 @@
 	},
 	"sources": {
 		"contracts/BOMB_flattened.sol": {
-			"keccak256": "0x852c4d78e16ea79f60124775bcf5eae07f3d57304a9207257f1119eb2c0833d6",
+			"keccak256": "0xdb36300a09866ae494b3a276f66056037d6580c41805405d2c0d1a041665a8bd",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://d80e679be5c79c84001bce00f14300e6eaa547b7a8a6fdecfeacb6ea0363f3d4",
-				"dweb:/ipfs/QmYVH72sm8R6UmXuxLHVrss9N1faVDJdoqQrXqBeJgVF79"
+				"bzz-raw://650238286b6f2c2830bba172ea7a2f9a3d9f9fcc7cd058fa69e70075f5563578",
+				"dweb:/ipfs/QmYSWYFrL8iWJ6FQHS848tPgedVzbfNvin1dXKeS5AXMkG"
 			]
 		}
 	},

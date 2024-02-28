@@ -6,84 +6,32 @@
 	"output": {
 		"abi": [
 			{
-				"inputs": [],
-				"stateMutability": "nonpayable",
-				"type": "constructor"
-			},
-			{
-				"anonymous": false,
 				"inputs": [
 					{
-						"indexed": true,
 						"internalType": "address",
-						"name": "previousOwner",
-						"type": "address"
-					}
-				],
-				"name": "OwnershipRenounced",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": true,
-						"internalType": "address",
-						"name": "previousOwner",
+						"name": "contractAddress",
 						"type": "address"
 					},
 					{
-						"indexed": true,
 						"internalType": "address",
-						"name": "newOwner",
+						"name": "recipient",
 						"type": "address"
 					}
 				],
-				"name": "OwnershipTransferred",
-				"type": "event"
-			},
-			{
-				"inputs": [],
-				"name": "isOwner",
+				"name": "claimAllGas",
 				"outputs": [
 					{
-						"internalType": "bool",
+						"internalType": "uint256",
 						"name": "",
-						"type": "bool"
+						"type": "uint256"
 					}
 				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "owner",
-				"outputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "renounceOwnership",
-				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "newOwner",
-						"type": "address"
-					}
-				],
-				"name": "transferOwnership",
+				"inputs": [],
+				"name": "configureClaimableGas",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -102,7 +50,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/BOMB_flattened.sol": "Ownable"
+			"contracts/BOMB_flattened.sol": "IBlast"
 		},
 		"evmVersion": "shanghai",
 		"libraries": {},

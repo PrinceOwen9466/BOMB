@@ -9,15 +9,11 @@ interface IBlast {
 }
 
 abstract contract BlastClaimable is Ownable {
-	IBlast public constant BLAST = IBlast(0x4300000000000000000000000000000000000002);
+	IBlast public BLAST;
 	mapping(address => uint256) _lastBlastClaim;
 
 	uint256 public _blastClaimInterval = 1 days;
 	uint256 internal _feesClaimed;
-
-	constructor() {
-		BLAST.configureClaimableGas();
-	}
 
 	function claimMyGasFees() external {
 		address recipient = msg.sender;
@@ -34,6 +30,14 @@ abstract contract BlastClaimable is Ownable {
 			_feesClaimed += claimed;
 			blastFeesClaimed(claimed);
 		}
+	}
+
+	function setupBlast(address blastAddr) external onlyOwner {
+		if (blastAddr == address(0)) {
+			blastAddr = 0x4300000000000000000000000000000000000002;
+		}
+		BLAST = IBlast(blastAddr);
+		BLAST.configureClaimableGas();
 	}
 
 	function setBlastClaimInterval(uint256 interval) external onlyOwner {

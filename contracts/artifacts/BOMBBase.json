@@ -49,28 +49,36 @@
 		},
 		"gasEstimates": null,
 		"methodIdentifiers": {
+			"BLAST()": "97d75776",
+			"_autoDistribute()": "95fe579c",
 			"_autoRebase()": "afb9cf6d",
+			"_autoSwapBack()": "70ee7395",
 			"_blacklist(address)": "a20623ce",
+			"_blastClaimInterval()": "4addc0e8",
 			"_distributionInterval()": "c737a49b",
 			"_feePercent()": "69222948",
-			"_initComplete()": "31b216ed",
 			"_initRebaseStartTime()": "9b87676c",
 			"_lastRebasedTime()": "32b75683",
 			"_totalSupply()": "3eaaf86b",
 			"allowance(address,address)": "dd62ed3e",
 			"approve(address,uint256)": "095ea7b3",
 			"balanceOf(address)": "70a08231",
+			"claimMyGasFees()": "23084e5f",
 			"decimals()": "313ce567",
 			"isOwner()": "8f32d59b",
 			"name()": "06fdde03",
 			"owner()": "8da5cb5b",
 			"renounceOwnership()": "715018a6",
+			"setAutoDistribute(bool)": "4e14ec4b",
 			"setAutoRebase(bool)": "e15beb80",
+			"setAutoSwapBack(bool)": "4bc6dd18",
+			"setBlastClaimInterval(uint256)": "eaca243b",
 			"setBotBlacklist(address,bool)": "37c9be87",
 			"setDistributeInterval(uint256)": "2910164a",
 			"setFeePercentage(uint256)": "ae06c1b7",
 			"setLP(address)": "2f34d282",
 			"setWhitelist(address)": "854cff2f",
+			"setupBlast(address)": "f2e809e0",
 			"symbol()": "95d89b41",
 			"totalSupply()": "18160ddd",
 			"transfer(address,uint256)": "a9059cbb",
@@ -182,7 +190,46 @@
 		},
 		{
 			"inputs": [],
+			"name": "BLAST",
+			"outputs": [
+				{
+					"internalType": "contract IBlast",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "_autoDistribute",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
 			"name": "_autoRebase",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "_autoSwapBack",
 			"outputs": [
 				{
 					"internalType": "bool",
@@ -214,6 +261,19 @@
 		},
 		{
 			"inputs": [],
+			"name": "_blastClaimInterval",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
 			"name": "_distributionInterval",
 			"outputs": [
 				{
@@ -233,19 +293,6 @@
 					"internalType": "uint256",
 					"name": "",
 					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "_initComplete",
-			"outputs": [
-				{
-					"internalType": "bool",
-					"name": "",
-					"type": "bool"
 				}
 			],
 			"stateMutability": "view",
@@ -359,6 +406,13 @@
 		},
 		{
 			"inputs": [],
+			"name": "claimMyGasFees",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [],
 			"name": "decimals",
 			"outputs": [
 				{
@@ -424,7 +478,46 @@
 					"type": "bool"
 				}
 			],
+			"name": "setAutoDistribute",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bool",
+					"name": "_flag",
+					"type": "bool"
+				}
+			],
 			"name": "setAutoRebase",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bool",
+					"name": "_flag",
+					"type": "bool"
+				}
+			],
+			"name": "setAutoSwapBack",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "interval",
+					"type": "uint256"
+				}
+			],
+			"name": "setBlastClaimInterval",
 			"outputs": [],
 			"stateMutability": "nonpayable",
 			"type": "function"
@@ -495,6 +588,19 @@
 				}
 			],
 			"name": "setWhitelist",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "blastAddr",
+					"type": "address"
+				}
+			],
+			"name": "setupBlast",
 			"outputs": [],
 			"stateMutability": "nonpayable",
 			"type": "function"
