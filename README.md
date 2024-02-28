@@ -1,13 +1,12 @@
-# Sample Hardhat Project
-
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
 ```
+ __    ____     _____            ____
+/\ \_ /\  _`\  /\  __`\  /'\_/`\/\  _`\
+\/'__`\ \ \L\ \\ \ \/\ \/\      \ \ \L\ \
+/\ \_\_\ \  _ <'\ \ \ \ \ \ \__\ \ \  _ <'
+\ \____ \ \ \L\ \\ \ \_\ \ \ \_/\ \ \ \L\ \
+ \/\ \_\ \ \____/ \ \_____\ \_\\ \_\ \____/
+  \ `\_ _/\/___/   \/_____/\/_/ \/_/\/___/
+   `\_/\_\
+      \/_/
+```
+First truly decentralized double rewards rebase token.
