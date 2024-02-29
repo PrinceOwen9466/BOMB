@@ -90,31 +90,12 @@
 			{
 				"inputs": [
 					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"name": "airdropQualifiers",
-				"outputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
 						"internalType": "address",
 						"name": "ref",
 						"type": "address"
 					}
 				],
-				"name": "buyIngots",
+				"name": "buyOres",
 				"outputs": [],
 				"stateMutability": "payable",
 				"type": "function"
@@ -132,7 +113,7 @@
 						"type": "uint256"
 					}
 				],
-				"name": "calculateIngotBuy",
+				"name": "calculateOreBuy",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -151,7 +132,7 @@
 						"type": "uint256"
 					}
 				],
-				"name": "calculateIngotBuySimple",
+				"name": "calculateOreBuySimple",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -166,11 +147,11 @@
 				"inputs": [
 					{
 						"internalType": "uint256",
-						"name": "ingots",
+						"name": "ores",
 						"type": "uint256"
 					}
 				],
-				"name": "calculateIngotSell",
+				"name": "calculateOreSell",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -208,46 +189,32 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "getAirdropQualifier",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "getBalance",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "adr",
-						"type": "address"
-					}
-				],
-				"name": "getIngotsSinceLastHatch",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "adr",
-						"type": "address"
-					}
-				],
-				"name": "getMyIngots",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -281,13 +248,57 @@
 				"inputs": [
 					{
 						"internalType": "address",
-						"name": "ref",
+						"name": "adr",
 						"type": "address"
 					}
 				],
-				"name": "hatchIngots",
-				"outputs": [],
-				"stateMutability": "nonpayable",
+				"name": "getMyOres",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "addr",
+						"type": "address"
+					}
+				],
+				"name": "getOresSinceLastHatch",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "who",
+						"type": "address"
+					}
+				],
+				"name": "ingotBalanceOf",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -332,7 +343,7 @@
 			},
 			{
 				"inputs": [],
-				"name": "sellIngots",
+				"name": "sellOres",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -390,7 +401,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/BlastFurnace.sol": "BlastFurnace"
+			"contracts/BlastFurnace_flattened.sol": "BlastFurnace"
 		},
 		"evmVersion": "shanghai",
 		"libraries": {},
@@ -404,44 +415,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"contracts/BlastClaimable.sol": {
-			"keccak256": "0x5e96243761ffeec86c67664bb8efc0897d4687b8cc44a7ee3a603b6ecde40be1",
+		"contracts/BlastFurnace_flattened.sol": {
+			"keccak256": "0xe9f32e2593d5133544c9ae4025ab65cdd431fb36cbe57bb42c6779347ecca862",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://557faaad23631be2d37273b7273eccaf6a49876e44bc644fb0a4c0159d7c2c3d",
-				"dweb:/ipfs/QmPZq8KPKeQKdHPEkJqtSYTzdCzDgA8FqgeZGqWc75Di1V"
-			]
-		},
-		"contracts/BlastFurnace.sol": {
-			"keccak256": "0x19e8c6900c561f1ba1f9de952d497c84e8e13fbcc864c794f078c67cea781279",
-			"license": "MIT",
-			"urls": [
-				"bzz-raw://2610313202cf2d809a40fbdbef10f2dba9ffca226f0cc15844f9bc5c12ca161a",
-				"dweb:/ipfs/QmVhMf6w1XZSMmxXR9yVrWgeT3LQeo5TB4sqDVLzsJg76D"
-			]
-		},
-		"contracts/NativeTransferable.sol": {
-			"keccak256": "0x153f66ecb39c24a43c876361e23b5197d4427e054d69ab74649a7c13060a34b8",
-			"license": "MIT",
-			"urls": [
-				"bzz-raw://198b057a024e80252d81b63e06037f098886e5d137b3be4fd0b420ef39d237f7",
-				"dweb:/ipfs/QmSXXMwTxr85k5XvZM6nh2ow6cKTTXouYSg3ptpKeNrgSe"
-			]
-		},
-		"contracts/Ownable.sol": {
-			"keccak256": "0xafa70445c6f3c9ee3078932e981089b2b597a05fd2b37755046e4f82090b2a99",
-			"license": "MIT",
-			"urls": [
-				"bzz-raw://f75ed7ccf82e7f2a4cda6b4e307d279f9d7d37d510fdd0d175473ce020014728",
-				"dweb:/ipfs/QmQxnqNAfogYuQMtQ9GUun9VXX8TVt4a9cCHCmERMJzfWT"
-			]
-		},
-		"contracts/libraries/SafeMath.sol": {
-			"keccak256": "0x253745225d914ef5ab53ca81d88526a6e2591ff4dc44e602fa1481c14980e978",
-			"license": "MIT",
-			"urls": [
-				"bzz-raw://a535aa3d2394ca9cc933d940cf2395827b021d469afd17791f48d66b5147f4d1",
-				"dweb:/ipfs/QmPpAXfzRCzVe6JUrD1FZwNx7yCEW917QtG468a9uCFntG"
+				"bzz-raw://6e9f4ca0b43a7394513eb8151e007330c75871e6d5707035f12de35d10ab0bec",
+				"dweb:/ipfs/QmYrtbgGQg3GQhh7P8SHMU6eJ7s7Kyr7kCwq4FWrzcFecs"
 			]
 		}
 	},

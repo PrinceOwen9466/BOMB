@@ -156,7 +156,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/BOMB_flattened.sol": "BlastClaimable"
+			"contracts/BlastFurnace_flattened.sol": "BlastClaimable"
 		},
 		"evmVersion": "shanghai",
 		"libraries": {},
@@ -170,12 +170,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"contracts/BOMB_flattened.sol": {
-			"keccak256": "0x330a0a594b1bda3250091b0d4b9e40bd5792f5a4bd7e58e4075a1f65cd827f01",
+		"contracts/BlastFurnace_flattened.sol": {
+			"keccak256": "0xe9f32e2593d5133544c9ae4025ab65cdd431fb36cbe57bb42c6779347ecca862",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://32c7fd693cb9819fa5c6d1d41bea53525e76e7214892fac3e5cb148ff61a8abe",
-				"dweb:/ipfs/QmcSDsc5XGx2hjYsAb5PsFFDNJganLq5k8zJ4Zg6PJCxNX"
+				"bzz-raw://6e9f4ca0b43a7394513eb8151e007330c75871e6d5707035f12de35d10ab0bec",
+				"dweb:/ipfs/QmYrtbgGQg3GQhh7P8SHMU6eJ7s7Kyr7kCwq4FWrzcFecs"
 			]
 		}
 	},

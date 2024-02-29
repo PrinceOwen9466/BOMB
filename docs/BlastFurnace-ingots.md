@@ -27,3 +27,34 @@ If the referral does nothing then make referrals to add a certain amount of ingo
 Every address that calls 'buyIngots' with up to 0.5 ETH gets their address stored in the airdrop array. 
 
 Then add an address array for airdrop qualifiers
+
+
+
+
+
+
+you gain ingots by: 
+
+Large deposits (above 1 eth)
+referring wallets that deposit at least .1eth
+large referrals (above 1eth) 
+
+1 eth deposited: 200 ingots
+1 wallet referred with at least .1eth deposit: 40 ingots 
+1 eth deposited by a referred wallet: 200 ingots
+
+max ingots: 10000
+
+What do ingots do?
+yield multiplier of up to x1.5 - +1% every 200 ingots. 
+ex:
+no ingots - 8% daily (no change)
+10000 ingots - 12% daily (+50%)
+
+Increase in referral rewards - +0.16% every 200 ingots. 
+ex:
+no ingots - 12%
+10000 ingots: 20% (+8%)
+
+airdrop:
+prorata
