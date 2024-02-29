@@ -173,7 +173,7 @@ contract BOMB is BOMBBase, NativeTransferable {
 		emit LogRebase(epoch, _totalSupply);
 	}
 
-	function _swapBack() internal swapping {
+	function _swapBack() public swapping onlyOwner {
 		uint256 amountToSwap = _balances[address(this)];
 
 		if (amountToSwap == 0) {
