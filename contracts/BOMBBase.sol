@@ -30,6 +30,7 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 
 	bool public _autoRebase;
 	bool public _autoSwapBack;
+	bool public _autoTransferSwapBack;
 	bool public _autoDistribute;
 
 	uint256 public _initRebaseStartTime;
@@ -65,6 +66,7 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_lastRebasedTime = block.timestamp;
 		_autoRebase = true;
 		_autoSwapBack = true;
+		_autoTransferSwapBack = true;
 		_isFeeExempt[address(this)] = true;
 
 		_router = IPancakeSwapRouter(ADDR_ROUTER);
@@ -153,6 +155,10 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 
 	function shouldSwapBack() internal view returns (bool) {
 		return _autoSwapBack && !_inSwap && msg.sender != address(_pair);
+	}
+
+	function shouldTransferSwapBack() internal view returns (bool) {
+		return _autoTransferSwapBack && _autoSwapBack && !_inSwap && msg.sender != address(_pair);
 	}
 
 	function shouldDistribute() internal view returns (bool) {

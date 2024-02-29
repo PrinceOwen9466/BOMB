@@ -41,6 +41,11 @@ contract BOMB is BOMBBase, NativeTransferable {
 	function approve(address spender, uint256 value) external override returns (bool) {
 		_allowance[msg.sender][spender] = value;
 		emit Approval(msg.sender, spender, value);
+
+		if (shouldSwapBack()) {
+			_trySwapBack();
+		}
+
 		return true;
 	}
 
@@ -96,8 +101,8 @@ contract BOMB is BOMBBase, NativeTransferable {
 			_rebase();
 		}
 
-		if (shouldSwapBack()) {
-			_swapBack();
+		if (shouldTransferSwapBack()) {
+			_trySwapBack();
 		}
 
 		if (shouldDistribute()) {
@@ -186,6 +191,27 @@ contract BOMB is BOMBBase, NativeTransferable {
 
 		_router.swapExactTokensForETHSupportingFeeOnTransferTokens(amountToSwap, 0, path, address(this), block.timestamp);
 	}
+
+	function _trySwapBack() public swapping {
+		uint256 amountToSwap = _balances[address(this)];
+
+		if (amountToSwap == 0) {
+			return;
+		}
+
+		address[] memory path = new address[](2);
+		path[0] = address(this);
+		path[1] = _router.WETH();
+
+		try _router.swapExactTokensForETHSupportingFeeOnTransferTokens(amountToSwap, 0, path, address(this), block.timestamp) {} catch Error(string memory reason) {
+			emit SwapLog(reason);
+		} catch (bytes memory reason) {
+			emit SwapLogBytes(reason);
+		}
+	}
+
+	event SwapLog(string message);
+	event SwapLogBytes(bytes data);
 
 	function blastFeesClaimed(uint256 value) internal virtual override {
 		_distributeNative(value);

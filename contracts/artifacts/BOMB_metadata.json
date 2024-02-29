@@ -104,6 +104,32 @@
 				"anonymous": false,
 				"inputs": [
 					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "SwapLog",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					}
+				],
+				"name": "SwapLogBytes",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
 						"indexed": true,
 						"internalType": "address",
 						"name": "from",
@@ -167,6 +193,19 @@
 			{
 				"inputs": [],
 				"name": "_autoSwapBack",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "_autoTransferSwapBack",
 				"outputs": [
 					{
 						"internalType": "bool",
@@ -279,6 +318,13 @@
 					}
 				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "_trySwapBack",
+				"outputs": [],
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -804,11 +850,11 @@
 	},
 	"sources": {
 		"contracts/BOMB_flattened.sol": {
-			"keccak256": "0x330a0a594b1bda3250091b0d4b9e40bd5792f5a4bd7e58e4075a1f65cd827f01",
+			"keccak256": "0x855b100634e1ef51f12d628ae1584c450711758d60aa92076b08ad50dc0df24f",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://32c7fd693cb9819fa5c6d1d41bea53525e76e7214892fac3e5cb148ff61a8abe",
-				"dweb:/ipfs/QmcSDsc5XGx2hjYsAb5PsFFDNJganLq5k8zJ4Zg6PJCxNX"
+				"bzz-raw://a4a41ba90650100810bdff617455ca067aff4ee47b0cf2d7c912984a69c7c886",
+				"dweb:/ipfs/QmZYZ5kneqkGysyw1bWk1ym5d4hUozEW7xsKiLdACsfUTT"
 			]
 		}
 	},

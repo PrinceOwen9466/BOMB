@@ -18,7 +18,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/BlastFurnace_flattened.sol": "SafeMath"
+			"contracts/BOMB_flattened.sol": "SafeMath"
 		},
 		"evmVersion": "shanghai",
 		"libraries": {},
@@ -32,12 +32,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"contracts/BlastFurnace_flattened.sol": {
-			"keccak256": "0xe9f32e2593d5133544c9ae4025ab65cdd431fb36cbe57bb42c6779347ecca862",
+		"contracts/BOMB_flattened.sol": {
+			"keccak256": "0x855b100634e1ef51f12d628ae1584c450711758d60aa92076b08ad50dc0df24f",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://6e9f4ca0b43a7394513eb8151e007330c75871e6d5707035f12de35d10ab0bec",
-				"dweb:/ipfs/QmYrtbgGQg3GQhh7P8SHMU6eJ7s7Kyr7kCwq4FWrzcFecs"
+				"bzz-raw://a4a41ba90650100810bdff617455ca067aff4ee47b0cf2d7c912984a69c7c886",
+				"dweb:/ipfs/QmZYZ5kneqkGysyw1bWk1ym5d4hUozEW7xsKiLdACsfUTT"
 			]
 		}
 	},

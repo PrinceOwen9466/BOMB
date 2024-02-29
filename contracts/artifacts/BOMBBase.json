@@ -53,6 +53,7 @@
 			"_autoDistribute()": "95fe579c",
 			"_autoRebase()": "afb9cf6d",
 			"_autoSwapBack()": "70ee7395",
+			"_autoTransferSwapBack()": "85fd8758",
 			"_blacklist(address)": "a20623ce",
 			"_blastClaimInterval()": "4addc0e8",
 			"_distributionInterval()": "c737a49b",
@@ -230,6 +231,19 @@
 		{
 			"inputs": [],
 			"name": "_autoSwapBack",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "_autoTransferSwapBack",
 			"outputs": [
 				{
 					"internalType": "bool",
