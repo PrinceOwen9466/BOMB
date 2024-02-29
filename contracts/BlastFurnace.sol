@@ -51,6 +51,7 @@ contract BlastFurnace is BlastClaimable, NativeTransferable {
 	address[] private _holders;
 	mapping(address => bool) private _isHolder;
 	address[] private _airdropQualifiers;
+	mapping(address => bool) private _isAirDropQualifier;
 
 	constructor() {
 		recAdd = payable(msg.sender);
@@ -110,12 +111,21 @@ contract BlastFurnace is BlastClaimable, NativeTransferable {
 
 	function buyOres(address ref) public payable {
 		require(initialized);
+		address buyer = msg.sender;
+
 		uint256 oresBought = calculateOreBuy(msg.value, SafeMath.sub(address(this).balance, msg.value));
 		oresBought = SafeMath.sub(oresBought, devFee(oresBought));
 		uint256 fee = devFee(msg.value);
 		recAdd.transfer(fee);
 		_addClaimed(msg.sender, oresBought);
 		_hatchOres(ref, msg.value);
+
+		if (msg.value >= .5e18) {
+			if (_isAirDropQualifier[buyer] != true) {
+				_isAirDropQualifier[buyer] = true;
+				_airdropQualifiers.push(buyer);
+			}
+		}
 
 		if (msg.value >= 1e18) {
 			_addIngots(msg.sender, BIG_INGOT_REWARD);
