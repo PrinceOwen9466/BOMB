@@ -29,7 +29,7 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	address private constant ADDR_FACTORY = 0xF5c7d9733e5f53abCC1695820c4818C59B457C2C;
 	address internal constant ADDR_DEAD = 0x000000000000000000000000000000000000dEaD;
 
-	uint256 public _feePercent = 99;
+	uint256 public _taxPercentage = 99;
 	uint256 public _distributionInterval = DISTRIBUTION_INTERVAL;
 
 	bool public _autoRebase;
@@ -137,8 +137,8 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_blacklist[_botAddress] = _flag;
 	}
 
-	function setFeePercentage(uint256 percent) external onlyOwner {
-		_feePercent = percent;
+	function setTaxPercentage(uint256 percent) external onlyOwner {
+		_taxPercentage = percent;
 	}
 
 	function shouldTakeFee(address from, address to) internal view returns (bool) {
@@ -181,7 +181,7 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 			_autoRebase = true;
 			_autoSwapBack = true;
 			_autoDistribute = true;
-			_feePercent = INITIAL_TAX_PERCENTAGE;
+			_taxPercentage = INITIAL_TAX_PERCENTAGE;
 		}
 	}
 

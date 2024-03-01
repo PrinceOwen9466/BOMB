@@ -130,7 +130,7 @@ contract BOMB is BOMBBase, NativeTransferable {
 	}
 
 	function _takeFee(address sender, uint256 amount) internal returns (uint256) {
-		uint256 feeAmount = amount.div(100).mul(_feePercent);
+		uint256 feeAmount = amount.div(100).mul(_taxPercentage);
 		_addBalance(address(this), feeAmount);
 		emit Transfer(sender, address(this), feeAmount);
 
@@ -226,7 +226,7 @@ contract BOMB is BOMBBase, NativeTransferable {
 		_addBalance(address(this), rem);
 	}
 
-	function _rebase() public {
+	function _rebase() internal {
 		if (_inSwap) return;
 		uint256 rebaseRate;
 		uint256 deltaTimeFromInit = block.timestamp - _initRebaseStartTime;
@@ -261,7 +261,7 @@ contract BOMB is BOMBBase, NativeTransferable {
 		emit LogRebase(epoch, _totalSupply);
 	}
 
-	function _trySwapBack() public swapping {
+	function _trySwapBack() private swapping {
 		uint256 swapAmount = _balances[address(this)];
 
 		if (swapAmount < _swapThreshold) {

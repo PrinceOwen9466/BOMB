@@ -57,7 +57,6 @@
 			"_blacklist(address)": "a20623ce",
 			"_blastClaimInterval()": "4addc0e8",
 			"_distributionInterval()": "c737a49b",
-			"_feePercent()": "69222948",
 			"_initRebaseStartTime()": "9b87676c",
 			"_lastRebasedTime()": "32b75683",
 			"_pair()": "b51449bb",
@@ -66,6 +65,7 @@
 			"_swapOnBuys()": "77855208",
 			"_swapOnSells()": "39f32440",
 			"_swapThreshold()": "0e5a9231",
+			"_taxPercentage()": "44aab59a",
 			"_totalSupply()": "3eaaf86b",
 			"allowance(address,address)": "dd62ed3e",
 			"approve(address,uint256)": "095ea7b3",
@@ -82,10 +82,10 @@
 			"setBlastClaimInterval(uint256)": "eaca243b",
 			"setBotBlacklist(address,bool)": "37c9be87",
 			"setDistributeInterval(uint256)": "2910164a",
-			"setFeePercentage(uint256)": "ae06c1b7",
 			"setLP(address)": "2f34d282",
 			"setRouter(address)": "c0d78655",
 			"setSwapSettings(uint256,uint256,bool,bool)": "7c5d525f",
+			"setTaxPercentage(uint256)": "699abb3c",
 			"setWhitelist(address)": "854cff2f",
 			"setupBlast(address)": "f2e809e0",
 			"symbol()": "95d89b41",
@@ -341,19 +341,6 @@
 		},
 		{
 			"inputs": [],
-			"name": "_feePercent",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
 			"name": "_initRebaseStartTime",
 			"outputs": [
 				{
@@ -446,6 +433,19 @@
 		{
 			"inputs": [],
 			"name": "_swapThreshold",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "_taxPercentage",
 			"outputs": [
 				{
 					"internalType": "uint256",
@@ -688,19 +688,6 @@
 		{
 			"inputs": [
 				{
-					"internalType": "uint256",
-					"name": "percent",
-					"type": "uint256"
-				}
-			],
-			"name": "setFeePercentage",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
 					"internalType": "address",
 					"name": "addr",
 					"type": "address"
@@ -748,6 +735,19 @@
 				}
 			],
 			"name": "setSwapSettings",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "percent",
+					"type": "uint256"
+				}
+			],
+			"name": "setTaxPercentage",
 			"outputs": [],
 			"stateMutability": "nonpayable",
 			"type": "function"

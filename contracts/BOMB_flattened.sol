@@ -745,12 +745,13 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	uint256 private constant INITIAL_SUPPLY = 325 * 10 ** 3 * 10 ** DECIMALS;
 	uint256 internal constant REBASE_INTERVAL = 15 minutes;
 	uint256 internal constant DISTRIBUTION_INTERVAL = 10 minutes;
+	uint256 internal constant THRESHOLD_DIVISOR = 1_000_000;
 
 	address private constant ADDR_ROUTER = 0xd7f655E3376cE2D7A2b08fF01Eb3B1023191A901;
 	address private constant ADDR_FACTORY = 0xF5c7d9733e5f53abCC1695820c4818C59B457C2C;
 	address internal constant ADDR_DEAD = 0x000000000000000000000000000000000000dEaD;
 
-	uint256 public _feePercent = 99;
+	uint256 public _taxPercentage = 99;
 	uint256 public _distributionInterval = DISTRIBUTION_INTERVAL;
 
 	bool public _autoRebase;
@@ -855,20 +856,11 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	}
 
 	function setBotBlacklist(address _botAddress, bool _flag) external onlyOwner {
-		require(isContract(_botAddress), "only contract address, not allowed exteranlly owned account");
 		_blacklist[_botAddress] = _flag;
 	}
 
-	function setFeePercentage(uint256 percent) external onlyOwner {
-		_feePercent = percent;
-	}
-
-	function isContract(address addr) internal view returns (bool) {
-		uint size;
-		assembly {
-			size := extcodesize(addr)
-		}
-		return size > 0;
+	function setTaxPercentage(uint256 percent) external onlyOwner {
+		_taxPercentage = percent;
 	}
 
 	function shouldTakeFee(address from, address to) internal view returns (bool) {
@@ -911,12 +903,8 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 			_autoRebase = true;
 			_autoSwapBack = true;
 			_autoDistribute = true;
-			_feePercent = INITIAL_TAX_PERCENTAGE;
+			_taxPercentage = INITIAL_TAX_PERCENTAGE;
 		}
-	}
-
-	function _setLP(address addr) private {
-		_pair = IPancakeSwapPair(addr);
 	}
 
 	function _tryInitAVAXNative() private {
@@ -939,16 +927,13 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	}
 
 	function setSwapSettings(uint256 swapThreshold, uint256 swapAmount, bool swapOnBuys, bool swapOnSells) external onlyOwner {
-		_swapThreshold = (_totalSupply * swapThreshold) / 1_000_000;
-		_swapAmount = (_totalSupply * swapAmount) / 1_000_000;
+		_swapThreshold = (_totalSupply * swapThreshold) / THRESHOLD_DIVISOR;
+		_swapAmount = (_totalSupply * swapAmount) / THRESHOLD_DIVISOR;
 
 		_swapOnBuys = swapOnBuys;
 		_swapOnSells = swapOnSells;
 
-		// TODO: Set fee here?
 		require(_swapThreshold <= _swapAmount, "Threshold cannot be above amount.");
-		// require(_swapAmount >= _totalSupply / 1_000_000, "Cannot be lower than 0.00001% of total supply.");
-		// require(_swapThreshold >= _totalSupply / 1_000_000, "Cannot be lower than 0.00001% of total supply.");
 	}
 
 	function setDistributeInterval(uint256 interval) external onlyOwner {
@@ -987,6 +972,14 @@ contract BOMB is BOMBBase, NativeTransferable {
 
 	function manualSync() external {
 		IPancakeSwapPair(address(_pair)).sync();
+	}
+
+	function manualSwapBack() external onlyOwner {
+		_trySwapBack();
+	}
+
+	function manualDistribute() external onlyOwner {
+		_distributeWNative();
 	}
 
 	function totalSupply() external view override returns (uint256) {
@@ -1085,7 +1078,7 @@ contract BOMB is BOMBBase, NativeTransferable {
 	}
 
 	function _takeFee(address sender, uint256 amount) internal returns (uint256) {
-		uint256 feeAmount = amount.div(100).mul(_feePercent);
+		uint256 feeAmount = amount.div(100).mul(_taxPercentage);
 		_addBalance(address(this), feeAmount);
 		emit Transfer(sender, address(this), feeAmount);
 
@@ -1181,7 +1174,7 @@ contract BOMB is BOMBBase, NativeTransferable {
 		_addBalance(address(this), rem);
 	}
 
-	function _rebase() public {
+	function _rebase() internal {
 		if (_inSwap) return;
 		uint256 rebaseRate;
 		uint256 deltaTimeFromInit = block.timestamp - _initRebaseStartTime;
@@ -1216,18 +1209,16 @@ contract BOMB is BOMBBase, NativeTransferable {
 		emit LogRebase(epoch, _totalSupply);
 	}
 
-	function _trySwapBack() public swapping {
+	function _trySwapBack() private swapping {
 		uint256 swapAmount = _balances[address(this)];
 
 		if (swapAmount < _swapThreshold) {
 			return;
 		}
 
-		// uint256 lpBalance = _balances[address(_pair)];
 		// TODO: Add lp price calculations
-		uint256 maxSwap = _swapAmount;
-		if (swapAmount > maxSwap) {
-			swapAmount = maxSwap;
+		if (swapAmount > _swapAmount) {
+			swapAmount = _swapAmount;
 		}
 
 		address[] memory path = new address[](2);

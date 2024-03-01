@@ -269,19 +269,6 @@
 			},
 			{
 				"inputs": [],
-				"name": "_feePercent",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
 				"name": "_initRebaseStartTime",
 				"outputs": [
 					{
@@ -317,13 +304,6 @@
 					}
 				],
 				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "_rebase",
-				"outputs": [],
-				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -393,7 +373,7 @@
 			},
 			{
 				"inputs": [],
-				"name": "_totalSupply",
+				"name": "_taxPercentage",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -406,9 +386,15 @@
 			},
 			{
 				"inputs": [],
-				"name": "_trySwapBack",
-				"outputs": [],
-				"stateMutability": "nonpayable",
+				"name": "_totalSupply",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -593,6 +579,20 @@
 			},
 			{
 				"inputs": [],
+				"name": "manualDistribute",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "manualSwapBack",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "manualSync",
 				"outputs": [],
 				"stateMutability": "nonpayable",
@@ -717,19 +717,6 @@
 			{
 				"inputs": [
 					{
-						"internalType": "uint256",
-						"name": "percent",
-						"type": "uint256"
-					}
-				],
-				"name": "setFeePercentage",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
 						"internalType": "address",
 						"name": "addr",
 						"type": "address"
@@ -777,6 +764,19 @@
 					}
 				],
 				"name": "setSwapSettings",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "percent",
+						"type": "uint256"
+					}
+				],
+				"name": "setTaxPercentage",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -962,11 +962,11 @@
 	},
 	"sources": {
 		"contracts/BOMB_flattened.sol": {
-			"keccak256": "0xa7ba889b9894f4bf7ede9dab58ce128f0afa9a988aac6e6222b4d09aa6f84c03",
+			"keccak256": "0x7c48ed14b334f5d142d6cfab150569cff8c167500da9f9469f2480c7dc958c3f",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://efb3ba764f5a675165fefb4593fe923075daf1e5738dfcc79ab7eea1aace9558",
-				"dweb:/ipfs/QmZYgUSgb91dpKNSD8eAM2HYoVFtxmay9iCCMvurdSef4N"
+				"bzz-raw://c943439429eb16e55babc9d512dc6d1205d874fbe02deb6076e90823ca360075",
+				"dweb:/ipfs/QmY4HCo4Twauju7FRj2vJAjJktqH87rFeM14uMgePAKYyY"
 			]
 		}
 	},
