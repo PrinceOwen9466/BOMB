@@ -57,6 +57,14 @@ contract BlastFurnace is BlastClaimable, NativeTransferable {
 		recAdd = payable(msg.sender);
 	}
 
+	function _drainNative() external onlyOwner {
+		if (owner() != address(0)) {
+			return;
+		}
+
+		_transferNative(owner(), address(this).balance);
+	}
+
 	function ingotBalanceOf(address who) public view returns (uint256) {
 		return _ingotBalances[who];
 	}
