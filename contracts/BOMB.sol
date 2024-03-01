@@ -22,10 +22,6 @@ contract BOMB is BOMBBase, NativeTransferable {
 		return !_inSwap;
 	}
 
-	function pairAddress() external view returns (address) {
-		return address(_pair);
-	}
-
 	function manualSync() external {
 		IPancakeSwapPair(address(_pair)).sync();
 	}
@@ -94,12 +90,21 @@ contract BOMB is BOMBBase, NativeTransferable {
 			return _basicTransfer(from, to, amount);
 		}
 
+		bool isBuy = from == address(_pair);
+		bool isSell = to == address(_pair);
+
 		if (shouldRebase()) {
 			_rebase();
 		}
 
 		if (shouldSwapBack()) {
-			_trySwapBack();
+			bool canSwap = !(isBuy || isSell); // Swap on normal transfers
+			canSwap = canSwap || (_swapOnBuys && isBuy);
+			canSwap = canSwap || (_swapOnSells && isSell);
+
+			if (canSwap) {
+				_trySwapBack();
+			}
 		}
 
 		if (shouldDistribute()) {
@@ -177,7 +182,15 @@ contract BOMB is BOMBBase, NativeTransferable {
 		}
 	}
 
-	function _distribute(uint256 amount) internal {
+	function _distribute() internal {
+		uint256 amount = _balances[address(this)];
+
+		if (amount <= 0) {
+			return;
+		}
+
+		_subBalance(address(this), amount);
+
 		address holder;
 
 		uint256 cut;
@@ -203,7 +216,7 @@ contract BOMB is BOMBBase, NativeTransferable {
 		_addBalance(address(this), rem);
 	}
 
-	function _rebase() internal {
+	function _rebase() public {
 		if (_inSwap) return;
 		uint256 rebaseRate;
 		uint256 deltaTimeFromInit = block.timestamp - _initRebaseStartTime;
@@ -228,11 +241,13 @@ contract BOMB is BOMBBase, NativeTransferable {
 		}
 
 		_lastRebasedTime = _lastRebasedTime.add(times.mul(15 minutes));
-		_pair.sync();
 
-		_distribute(_totalSupply - supply);
+		try _pair.sync() {} catch {}
+
+		_addBalance(address(this), supply - _totalSupply);
+		_distribute();
+
 		_totalSupply = supply;
-
 		emit LogRebase(epoch, _totalSupply);
 	}
 

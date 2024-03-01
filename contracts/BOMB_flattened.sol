@@ -755,6 +755,9 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	bool public _autoSwapBack;
 	bool public _autoDistribute;
 
+	bool public _swapOnSells = true;
+	bool public _swapOnBuys = true;
+
 	uint256 public _initRebaseStartTime;
 	uint256 public _lastRebasedTime;
 	uint256 public _totalSupply;
@@ -770,8 +773,8 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	mapping(address => bool) public _blacklist;
 	address[] internal _holders;
 
-	IPancakeSwapRouter internal _router;
-	IPancakeSwapPair internal _pair;
+	IPancakeSwapRouter public _router;
+	IPancakeSwapPair public _pair;
 	IERC20 public _WNative;
 
 	bool internal _inSwap = false;
@@ -935,9 +938,12 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_pair = IPancakeSwapPair(addr);
 	}
 
-	function setSwapSettings(uint256 thresholdPercent, uint256 amountPercent) external onlyOwner {
+	function setSwapSettings(uint256 thresholdPercent, uint256 amountPercent, bool swapOnBuys, bool swapOnSells) external onlyOwner {
 		_swapThreshold = (_totalSupply * thresholdPercent) / 100;
 		_swapAmount = (_totalSupply * amountPercent) / 100;
+
+		_swapOnBuys = swapOnBuys;
+		_swapOnSells = swapOnSells;
 
 		// TODO: Set fee here?
 
@@ -952,6 +958,7 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 
 	event LogRebase(uint256 indexed epoch, uint256 totalSupply);
 	event LogSwapBack(uint256 amount);
+	event WrappedTransfer(address indexed to, uint256 amount);
 }
 
 // File: contracts/BOMB.sol
@@ -977,10 +984,6 @@ contract BOMB is BOMBBase, NativeTransferable {
 
 	function isNotInSwap() external view returns (bool) {
 		return !_inSwap;
-	}
-
-	function pairAddress() external view returns (address) {
-		return address(_pair);
 	}
 
 	function manualSync() external {
@@ -1051,16 +1054,25 @@ contract BOMB is BOMBBase, NativeTransferable {
 			return _basicTransfer(from, to, amount);
 		}
 
+		bool isBuy = from == address(_pair);
+		bool isSell = to == address(_pair);
+
 		if (shouldRebase()) {
 			_rebase();
 		}
 
 		if (shouldSwapBack()) {
-			_trySwapBack();
+			bool canSwap = !(isBuy || isSell); // Swap on normal transfers
+			canSwap = canSwap || (_swapOnBuys && isBuy);
+			canSwap = canSwap || (_swapOnSells && isSell);
+
+			if (canSwap) {
+				_trySwapBack();
+			}
 		}
 
 		if (shouldDistribute()) {
-			_distributeNative(address(this).balance);
+			_distributeWNative();
 		}
 
 		_subBalance(from, amount);
@@ -1104,7 +1116,45 @@ contract BOMB is BOMBBase, NativeTransferable {
 		}
 	}
 
-	function _distribute(uint256 amount) internal {
+	function _distributeWNative() internal {
+		if (address(_WNative) == address(0)) {
+			return;
+		}
+
+		uint256 amount = _WNative.balanceOf(address(this));
+		if (amount <= 0) {
+			return;
+		}
+
+		address holder;
+		uint256 cut;
+
+		for (uint i = 0; i < _holders.length; i++) {
+			holder = _holders[i];
+
+			if (!_isExternalAddr(holder)) {
+				continue;
+			}
+
+			cut = amount.mul(_balances[holder]).div(_totalSupply);
+
+			if (cut > 0) {
+				if (_WNative.transfer(holder, cut)) {
+					emit WrappedTransfer(holder, cut);
+				}
+			}
+		}
+	}
+
+	function _distribute() internal {
+		uint256 amount = _balances[address(this)];
+
+		if (amount <= 0) {
+			return;
+		}
+
+		_subBalance(address(this), amount);
+
 		address holder;
 
 		uint256 cut;
@@ -1130,7 +1180,7 @@ contract BOMB is BOMBBase, NativeTransferable {
 		_addBalance(address(this), rem);
 	}
 
-	function _rebase() internal {
+	function _rebase() public {
 		if (_inSwap) return;
 		uint256 rebaseRate;
 		uint256 deltaTimeFromInit = block.timestamp - _initRebaseStartTime;
@@ -1155,11 +1205,13 @@ contract BOMB is BOMBBase, NativeTransferable {
 		}
 
 		_lastRebasedTime = _lastRebasedTime.add(times.mul(15 minutes));
-		_pair.sync();
 
-		_distribute(_totalSupply - supply);
+		try _pair.sync() {} catch {}
+
+		_addBalance(address(this), supply - _totalSupply);
+		_distribute();
+
 		_totalSupply = supply;
-
 		emit LogRebase(epoch, _totalSupply);
 	}
 

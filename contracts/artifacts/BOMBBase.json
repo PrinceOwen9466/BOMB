@@ -60,7 +60,11 @@
 			"_feePercent()": "69222948",
 			"_initRebaseStartTime()": "9b87676c",
 			"_lastRebasedTime()": "32b75683",
+			"_pair()": "b51449bb",
+			"_router()": "edae876f",
 			"_swapAmount()": "f7678efc",
+			"_swapOnBuys()": "77855208",
+			"_swapOnSells()": "39f32440",
 			"_swapThreshold()": "0e5a9231",
 			"_totalSupply()": "3eaaf86b",
 			"allowance(address,address)": "dd62ed3e",
@@ -81,7 +85,7 @@
 			"setFeePercentage(uint256)": "ae06c1b7",
 			"setLP(address)": "2f34d282",
 			"setRouter(address)": "c0d78655",
-			"setSwapSettings(uint256,uint256)": "8f4590d2",
+			"setSwapSettings(uint256,uint256,bool,bool)": "7c5d525f",
 			"setWhitelist(address)": "854cff2f",
 			"setupBlast(address)": "f2e809e0",
 			"symbol()": "95d89b41",
@@ -204,6 +208,25 @@
 				}
 			],
 			"name": "Transfer",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "to",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "amount",
+					"type": "uint256"
+				}
+			],
+			"name": "WrappedTransfer",
 			"type": "event"
 		},
 		{
@@ -357,12 +380,64 @@
 		},
 		{
 			"inputs": [],
+			"name": "_pair",
+			"outputs": [
+				{
+					"internalType": "contract IPancakeSwapPair",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "_router",
+			"outputs": [
+				{
+					"internalType": "contract IPancakeSwapRouter",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
 			"name": "_swapAmount",
 			"outputs": [
 				{
 					"internalType": "uint256",
 					"name": "",
 					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "_swapOnBuys",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "_swapOnSells",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
 				}
 			],
 			"stateMutability": "view",
@@ -660,6 +735,16 @@
 					"internalType": "uint256",
 					"name": "amountPercent",
 					"type": "uint256"
+				},
+				{
+					"internalType": "bool",
+					"name": "swapOnBuys",
+					"type": "bool"
+				},
+				{
+					"internalType": "bool",
+					"name": "swapOnSells",
+					"type": "bool"
 				}
 			],
 			"name": "setSwapSettings",

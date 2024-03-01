@@ -33,6 +33,9 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	bool public _autoSwapBack;
 	bool public _autoDistribute;
 
+	bool public _swapOnSells = true;
+	bool public _swapOnBuys = true;
+
 	uint256 public _initRebaseStartTime;
 	uint256 public _lastRebasedTime;
 	uint256 public _totalSupply;
@@ -48,8 +51,8 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	mapping(address => bool) public _blacklist;
 	address[] internal _holders;
 
-	IPancakeSwapRouter internal _router;
-	IPancakeSwapPair internal _pair;
+	IPancakeSwapRouter public _router;
+	IPancakeSwapPair public _pair;
 	IERC20 public _WNative;
 
 	bool internal _inSwap = false;
@@ -213,9 +216,12 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_pair = IPancakeSwapPair(addr);
 	}
 
-	function setSwapSettings(uint256 thresholdPercent, uint256 amountPercent) external onlyOwner {
+	function setSwapSettings(uint256 thresholdPercent, uint256 amountPercent, bool swapOnBuys, bool swapOnSells) external onlyOwner {
 		_swapThreshold = (_totalSupply * thresholdPercent) / 100;
 		_swapAmount = (_totalSupply * amountPercent) / 100;
+
+		_swapOnBuys = swapOnBuys;
+		_swapOnSells = swapOnSells;
 
 		// TODO: Set fee here?
 
