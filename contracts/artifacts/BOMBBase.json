@@ -53,13 +53,14 @@
 			"_autoDistribute()": "95fe579c",
 			"_autoRebase()": "afb9cf6d",
 			"_autoSwapBack()": "70ee7395",
-			"_autoTransferSwapBack()": "85fd8758",
 			"_blacklist(address)": "a20623ce",
 			"_blastClaimInterval()": "4addc0e8",
 			"_distributionInterval()": "c737a49b",
 			"_feePercent()": "69222948",
 			"_initRebaseStartTime()": "9b87676c",
 			"_lastRebasedTime()": "32b75683",
+			"_swapAmount()": "f7678efc",
+			"_swapThreshold()": "0e5a9231",
 			"_totalSupply()": "3eaaf86b",
 			"allowance(address,address)": "dd62ed3e",
 			"approve(address,uint256)": "095ea7b3",
@@ -78,6 +79,8 @@
 			"setDistributeInterval(uint256)": "2910164a",
 			"setFeePercentage(uint256)": "ae06c1b7",
 			"setLP(address)": "2f34d282",
+			"setRouter(address)": "c0d78655",
+			"setSwapSettings(uint256,uint256)": "8f4590d2",
 			"setWhitelist(address)": "854cff2f",
 			"setupBlast(address)": "f2e809e0",
 			"symbol()": "95d89b41",
@@ -130,6 +133,19 @@
 				}
 			],
 			"name": "LogRebase",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "amount",
+					"type": "uint256"
+				}
+			],
+			"name": "LogSwapBack",
 			"type": "event"
 		},
 		{
@@ -242,19 +258,6 @@
 			"type": "function"
 		},
 		{
-			"inputs": [],
-			"name": "_autoTransferSwapBack",
-			"outputs": [
-				{
-					"internalType": "bool",
-					"name": "",
-					"type": "bool"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
 			"inputs": [
 				{
 					"internalType": "address",
@@ -328,6 +331,32 @@
 		{
 			"inputs": [],
 			"name": "_lastRebasedTime",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "_swapAmount",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "_swapThreshold",
 			"outputs": [
 				{
 					"internalType": "uint256",
@@ -589,6 +618,37 @@
 				}
 			],
 			"name": "setLP",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "addr",
+					"type": "address"
+				}
+			],
+			"name": "setRouter",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "thresholdPercent",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "amountPercent",
+					"type": "uint256"
+				}
+			],
+			"name": "setSwapSettings",
 			"outputs": [],
 			"stateMutability": "nonpayable",
 			"type": "function"

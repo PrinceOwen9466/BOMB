@@ -30,12 +30,14 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 
 	bool public _autoRebase;
 	bool public _autoSwapBack;
-	bool public _autoTransferSwapBack;
 	bool public _autoDistribute;
 
 	uint256 public _initRebaseStartTime;
 	uint256 public _lastRebasedTime;
 	uint256 public _totalSupply;
+
+	uint256 public _swapAmount;
+	uint256 public _swapThreshold;
 
 	uint256 internal _lastDistribution;
 
@@ -64,12 +66,9 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_totalSupply = INITIAL_SUPPLY;
 		_initRebaseStartTime = block.timestamp;
 		_lastRebasedTime = block.timestamp;
-		_autoRebase = true;
-		_autoSwapBack = true;
-		_autoTransferSwapBack = true;
 		_isFeeExempt[address(this)] = true;
 
-		_router = IPancakeSwapRouter(ADDR_ROUTER);
+		// _router = IPancakeSwapRouter(ADDR_ROUTER);
 
 		_balances[msg.sender] = _totalSupply;
 		emit Transfer(address(this), msg.sender, _totalSupply);
@@ -157,16 +156,34 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		return _autoSwapBack && !_inSwap && msg.sender != address(_pair);
 	}
 
-	function shouldTransferSwapBack() internal view returns (bool) {
-		return _autoTransferSwapBack && _autoSwapBack && !_inSwap && msg.sender != address(_pair);
-	}
-
 	function shouldDistribute() internal view returns (bool) {
 		return _autoDistribute && block.timestamp >= _lastDistribution + _distributionInterval;
 	}
 
+	function setRouter(address addr) external onlyOwner {
+		_router = IPancakeSwapRouter(addr);
+		address pairAddr = IPancakeSwapFactory(_router.factory()).createPair(_router.WETH(), address(this));
+
+		_pair = IPancakeSwapPair(pairAddr);
+
+		_autoRebase = true;
+		_autoSwapBack = true;
+		_autoDistribute = true;
+	}
+
 	function setLP(address addr) external onlyOwner {
 		_pair = IPancakeSwapPair(addr);
+	}
+
+	function setSwapSettings(uint256 thresholdPercent, uint256 amountPercent) external onlyOwner {
+		_swapThreshold = (_totalSupply * thresholdPercent) / 100;
+		_swapAmount = (_totalSupply * amountPercent) / 100;
+
+		// TODO: Set fee here?
+
+		require(_swapThreshold <= _swapAmount, "Threshold cannot be above amount.");
+		// require(_swapAmount >= _totalSupply / 1_000_000, "Cannot be lower than 0.00001% of total supply.");
+		// require(_swapThreshold >= _totalSupply / 1_000_000, "Cannot be lower than 0.00001% of total supply.");
 	}
 
 	function setDistributeInterval(uint256 interval) external onlyOwner {
@@ -174,4 +191,5 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	}
 
 	event LogRebase(uint256 indexed epoch, uint256 totalSupply);
+	event LogSwapBack(uint256 amount);
 }

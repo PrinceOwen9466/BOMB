@@ -1,0 +1,45 @@
+{
+	"compiler": {
+		"version": "0.8.24+commit.e11b9ed9"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"verified-sources/0x2B207F1a0eA02bd64E84EFD970580984c292B1A9/sources/contracts/BOMB_flattened.sol": "SafeMathInt"
+		},
+		"evmVersion": "paris",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"verified-sources/0x2B207F1a0eA02bd64E84EFD970580984c292B1A9/sources/contracts/BOMB_flattened.sol": {
+			"keccak256": "0xa83bf0dfe3eb53cc2e89894f0039de28aa7e89a11376023e269d61edec8e7b1b",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://557f29c13adf9458bd5cc977f4b7bfe4204f899dc6791f6f82266c6a7e6523a2",
+				"dweb:/ipfs/QmRsgTp4KbQ5yZmzUcdyqRT4X8Ca8o9psJztmw5rzeexBB"
+			]
+		}
+	},
+	"version": 1
+}

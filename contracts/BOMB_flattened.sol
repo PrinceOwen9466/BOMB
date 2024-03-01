@@ -748,12 +748,14 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 
 	bool public _autoRebase;
 	bool public _autoSwapBack;
-	bool public _autoTransferSwapBack;
 	bool public _autoDistribute;
 
 	uint256 public _initRebaseStartTime;
 	uint256 public _lastRebasedTime;
 	uint256 public _totalSupply;
+
+	uint256 public _swapAmount;
+	uint256 public _swapThreshold;
 
 	uint256 internal _lastDistribution;
 
@@ -782,12 +784,9 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_totalSupply = INITIAL_SUPPLY;
 		_initRebaseStartTime = block.timestamp;
 		_lastRebasedTime = block.timestamp;
-		_autoRebase = true;
-		_autoSwapBack = true;
-		_autoTransferSwapBack = true;
 		_isFeeExempt[address(this)] = true;
 
-		_router = IPancakeSwapRouter(ADDR_ROUTER);
+		// _router = IPancakeSwapRouter(ADDR_ROUTER);
 
 		_balances[msg.sender] = _totalSupply;
 		emit Transfer(address(this), msg.sender, _totalSupply);
@@ -875,16 +874,34 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		return _autoSwapBack && !_inSwap && msg.sender != address(_pair);
 	}
 
-	function shouldTransferSwapBack() internal view returns (bool) {
-		return _autoTransferSwapBack && _autoSwapBack && !_inSwap && msg.sender != address(_pair);
-	}
-
 	function shouldDistribute() internal view returns (bool) {
 		return _autoDistribute && block.timestamp >= _lastDistribution + _distributionInterval;
 	}
 
+	function setRouter(address addr) external onlyOwner {
+		_router = IPancakeSwapRouter(addr);
+		address pairAddr = IPancakeSwapFactory(_router.factory()).createPair(_router.WETH(), address(this));
+
+		_pair = IPancakeSwapPair(pairAddr);
+
+		_autoRebase = true;
+		_autoSwapBack = true;
+		_autoDistribute = true;
+	}
+
 	function setLP(address addr) external onlyOwner {
 		_pair = IPancakeSwapPair(addr);
+	}
+
+	function setSwapSettings(uint256 thresholdPercent, uint256 amountPercent) external onlyOwner {
+		_swapThreshold = (_totalSupply * thresholdPercent) / 100;
+		_swapAmount = (_totalSupply * amountPercent) / 100;
+
+		// TODO: Set fee here?
+
+		require(_swapThreshold <= _swapAmount, "Threshold cannot be above amount.");
+		// require(_swapAmount >= _totalSupply / 1_000_000, "Cannot be lower than 0.00001% of total supply.");
+		// require(_swapThreshold >= _totalSupply / 1_000_000, "Cannot be lower than 0.00001% of total supply.");
 	}
 
 	function setDistributeInterval(uint256 interval) external onlyOwner {
@@ -892,6 +909,7 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	}
 
 	event LogRebase(uint256 indexed epoch, uint256 totalSupply);
+	event LogSwapBack(uint256 amount);
 }
 
 // File: contracts/BOMB.sol
@@ -939,10 +957,6 @@ contract BOMB is BOMBBase, NativeTransferable {
 		_allowance[msg.sender][spender] = value;
 		emit Approval(msg.sender, spender, value);
 
-		if (shouldSwapBack()) {
-			_trySwapBack();
-		}
-
 		return true;
 	}
 
@@ -988,17 +1002,18 @@ contract BOMB is BOMBBase, NativeTransferable {
 		return true;
 	}
 
-	function _transferFrom(address sender, address recipient, uint256 amount) internal returns (bool) {
-		require(!_blacklist[sender] && !_blacklist[recipient], "in_blacklist");
+	function _transferFrom(address from, address to, uint256 amount) internal returns (bool) {
+		require(!_blacklist[from] && !_blacklist[to], "in_blacklist");
 
 		if (_inSwap) {
-			return _basicTransfer(sender, recipient, amount);
+			return _basicTransfer(from, to, amount);
 		}
+
 		if (shouldRebase()) {
 			_rebase();
 		}
 
-		if (shouldTransferSwapBack()) {
+		if (shouldSwapBack()) {
 			_trySwapBack();
 		}
 
@@ -1006,12 +1021,12 @@ contract BOMB is BOMBBase, NativeTransferable {
 			_distributeNative(address(this).balance);
 		}
 
-		_subBalance(sender, amount);
+		_subBalance(from, amount);
 
-		uint256 amountReceived = shouldTakeFee(sender, recipient) ? _takeFee(sender, amount) : amount;
-		_addBalance(recipient, amountReceived);
+		uint256 amountReceived = shouldTakeFee(from, to) ? _takeFee(from, amount) : amount;
+		_addBalance(to, amountReceived);
 
-		emit Transfer(sender, recipient, amountReceived);
+		emit Transfer(from, to, amountReceived);
 
 		return true;
 	}
@@ -1047,6 +1062,32 @@ contract BOMB is BOMBBase, NativeTransferable {
 		}
 	}
 
+	function _distribute(uint256 amount) internal {
+		address holder;
+
+		uint256 cut;
+		uint256 distributed;
+
+		for (uint i = 0; i < _holders.length; i++) {
+			holder = _holders[i];
+
+			if (!_isExternalAddr(holder)) {
+				continue;
+			}
+
+			cut = amount.mul(_balances[holder]).div(_totalSupply);
+			distributed += cut;
+
+			if (cut > 0) {
+				_addBalance(holder, cut);
+				emit Transfer(address(this), holder, cut);
+			}
+		}
+
+		uint256 rem = amount - distributed;
+		_addBalance(address(this), rem);
+	}
+
 	function _rebase() internal {
 		if (_inSwap) return;
 		uint256 rebaseRate;
@@ -1065,50 +1106,45 @@ contract BOMB is BOMBBase, NativeTransferable {
 			rebaseRate = 1915;
 		}
 
+		uint256 supply = _totalSupply;
+
 		for (uint256 i = 0; i < times; i++) {
-			_totalSupply = _totalSupply.mul((10 ** RATE_DECIMALS).add(rebaseRate)).div(10 ** RATE_DECIMALS);
+			supply = _totalSupply.mul((10 ** RATE_DECIMALS).add(rebaseRate)).div(10 ** RATE_DECIMALS);
 		}
 
 		_lastRebasedTime = _lastRebasedTime.add(times.mul(15 minutes));
 		_pair.sync();
 
+		_distribute(_totalSupply - supply);
+		_totalSupply = supply;
+
 		emit LogRebase(epoch, _totalSupply);
 	}
 
-	function _swapBack() public swapping onlyOwner {
-		uint256 amountToSwap = _balances[address(this)];
-
-		if (amountToSwap == 0) {
-			return;
-		}
-
-		address[] memory path = new address[](2);
-		path[0] = address(this);
-		path[1] = _router.WETH();
-
-		_router.swapExactTokensForETHSupportingFeeOnTransferTokens(amountToSwap, 0, path, address(this), block.timestamp);
-	}
-
 	function _trySwapBack() public swapping {
-		uint256 amountToSwap = _balances[address(this)];
+		uint256 swapAmount = _balances[address(this)];
 
-		if (amountToSwap == 0) {
+		if (swapAmount < _swapThreshold) {
 			return;
+		}
+
+		// uint256 lpBalance = _balances[address(_pair)];
+		// TODO: Add lp price calculations
+		uint256 maxSwap = _swapAmount;
+		if (swapAmount > maxSwap) {
+			swapAmount = maxSwap;
 		}
 
 		address[] memory path = new address[](2);
 		path[0] = address(this);
 		path[1] = _router.WETH();
 
-		try _router.swapExactTokensForETHSupportingFeeOnTransferTokens(amountToSwap, 0, path, address(this), block.timestamp) {} catch Error(string memory reason) {
-			emit SwapLog(reason);
-		} catch (bytes memory reason) {
-			emit SwapLogBytes(reason);
+		try _router.swapExactTokensForETHSupportingFeeOnTransferTokens(swapAmount, 0, path, address(this), block.timestamp) {} catch {
+			return;
 		}
-	}
 
-	event SwapLog(string message);
-	event SwapLogBytes(bytes data);
+		emit LogSwapBack(swapAmount);
+	}
 
 	function blastFeesClaimed(uint256 value) internal virtual override {
 		_distributeNative(value);
