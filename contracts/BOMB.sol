@@ -26,6 +26,14 @@ contract BOMB is BOMBBase, NativeTransferable {
 		IPancakeSwapPair(address(_pair)).sync();
 	}
 
+	function manualSwapBack() external onlyOwner {
+		_trySwapBack();
+	}
+
+	function manualDistribute() external onlyOwner {
+		_distributeWNative();
+	}
+
 	function totalSupply() external view override returns (uint256) {
 		return _totalSupply;
 	}
@@ -180,6 +188,8 @@ contract BOMB is BOMBBase, NativeTransferable {
 				}
 			}
 		}
+
+		_lastDistribution = block.timestamp;
 	}
 
 	function _distribute() internal {
@@ -221,8 +231,8 @@ contract BOMB is BOMBBase, NativeTransferable {
 		uint256 rebaseRate;
 		uint256 deltaTimeFromInit = block.timestamp - _initRebaseStartTime;
 		uint256 deltaTime = block.timestamp - _lastRebasedTime;
-		uint256 times = deltaTime.div(15 minutes);
-		uint256 epoch = times.mul(15);
+		uint256 times = deltaTime.div(REBASE_INTERVAL);
+		uint256 epoch = times.mul(15); // TODO: Probably update this with any time change
 
 		if (deltaTimeFromInit > (3 * 365 days)) {
 			rebaseRate = 1;
@@ -240,7 +250,7 @@ contract BOMB is BOMBBase, NativeTransferable {
 			supply = _totalSupply.mul((10 ** RATE_DECIMALS).add(rebaseRate)).div(10 ** RATE_DECIMALS);
 		}
 
-		_lastRebasedTime = _lastRebasedTime.add(times.mul(15 minutes));
+		_lastRebasedTime = _lastRebasedTime.add(times.mul(REBASE_INTERVAL));
 
 		try _pair.sync() {} catch {}
 
@@ -258,11 +268,9 @@ contract BOMB is BOMBBase, NativeTransferable {
 			return;
 		}
 
-		// uint256 lpBalance = _balances[address(_pair)];
 		// TODO: Add lp price calculations
-		uint256 maxSwap = _swapAmount;
-		if (swapAmount > maxSwap) {
-			swapAmount = maxSwap;
+		if (swapAmount > _swapAmount) {
+			swapAmount = _swapAmount;
 		}
 
 		address[] memory path = new address[](2);

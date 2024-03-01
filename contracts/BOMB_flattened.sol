@@ -743,13 +743,15 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	uint256 private constant MAX_UINT256 = ~uint256(0);
 	uint256 private constant MAX_SUPPLY = 325 * 10 ** 7 * 10 ** DECIMALS;
 	uint256 private constant INITIAL_SUPPLY = 325 * 10 ** 3 * 10 ** DECIMALS;
+	uint256 internal constant REBASE_INTERVAL = 15 minutes;
+	uint256 internal constant DISTRIBUTION_INTERVAL = 10 minutes;
 
 	address private constant ADDR_ROUTER = 0xd7f655E3376cE2D7A2b08fF01Eb3B1023191A901;
 	address private constant ADDR_FACTORY = 0xF5c7d9733e5f53abCC1695820c4818C59B457C2C;
 	address internal constant ADDR_DEAD = 0x000000000000000000000000000000000000dEaD;
 
 	uint256 public _feePercent = 99;
-	uint256 public _distributionInterval = 10 minutes;
+	uint256 public _distributionInterval = DISTRIBUTION_INTERVAL;
 
 	bool public _autoRebase;
 	bool public _autoSwapBack;
@@ -794,8 +796,6 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_initRebaseStartTime = block.timestamp;
 		_lastRebasedTime = block.timestamp;
 		_isFeeExempt[address(this)] = true;
-
-		// _router = IPancakeSwapRouter(ADDR_ROUTER);
 
 		_balances[msg.sender] = _totalSupply;
 		emit Transfer(address(this), msg.sender, _totalSupply);
@@ -876,7 +876,7 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	}
 
 	function shouldRebase() internal view returns (bool) {
-		return _autoRebase && (_totalSupply < MAX_SUPPLY) && msg.sender != address(_pair) && !_inSwap && block.timestamp >= (_lastRebasedTime + 15 minutes);
+		return _autoRebase && (_totalSupply < MAX_SUPPLY) && msg.sender != address(_pair) && !_inSwap && block.timestamp >= (_lastRebasedTime + REBASE_INTERVAL);
 	}
 
 	function shouldSwapBack() internal view returns (bool) {
@@ -938,15 +938,14 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_pair = IPancakeSwapPair(addr);
 	}
 
-	function setSwapSettings(uint256 thresholdPercent, uint256 amountPercent, bool swapOnBuys, bool swapOnSells) external onlyOwner {
-		_swapThreshold = (_totalSupply * thresholdPercent) / 100;
-		_swapAmount = (_totalSupply * amountPercent) / 100;
+	function setSwapSettings(uint256 swapThreshold, uint256 swapAmount, bool swapOnBuys, bool swapOnSells) external onlyOwner {
+		_swapThreshold = (_totalSupply * swapThreshold) / 1_000_000;
+		_swapAmount = (_totalSupply * swapAmount) / 1_000_000;
 
 		_swapOnBuys = swapOnBuys;
 		_swapOnSells = swapOnSells;
 
 		// TODO: Set fee here?
-
 		require(_swapThreshold <= _swapAmount, "Threshold cannot be above amount.");
 		// require(_swapAmount >= _totalSupply / 1_000_000, "Cannot be lower than 0.00001% of total supply.");
 		// require(_swapThreshold >= _totalSupply / 1_000_000, "Cannot be lower than 0.00001% of total supply.");
@@ -1144,6 +1143,8 @@ contract BOMB is BOMBBase, NativeTransferable {
 				}
 			}
 		}
+
+		_lastDistribution = block.timestamp;
 	}
 
 	function _distribute() internal {
@@ -1185,8 +1186,8 @@ contract BOMB is BOMBBase, NativeTransferable {
 		uint256 rebaseRate;
 		uint256 deltaTimeFromInit = block.timestamp - _initRebaseStartTime;
 		uint256 deltaTime = block.timestamp - _lastRebasedTime;
-		uint256 times = deltaTime.div(15 minutes);
-		uint256 epoch = times.mul(15);
+		uint256 times = deltaTime.div(REBASE_INTERVAL);
+		uint256 epoch = times.mul(15); // TODO: Probably update this with any time change
 
 		if (deltaTimeFromInit > (3 * 365 days)) {
 			rebaseRate = 1;
@@ -1204,7 +1205,7 @@ contract BOMB is BOMBBase, NativeTransferable {
 			supply = _totalSupply.mul((10 ** RATE_DECIMALS).add(rebaseRate)).div(10 ** RATE_DECIMALS);
 		}
 
-		_lastRebasedTime = _lastRebasedTime.add(times.mul(15 minutes));
+		_lastRebasedTime = _lastRebasedTime.add(times.mul(REBASE_INTERVAL));
 
 		try _pair.sync() {} catch {}
 

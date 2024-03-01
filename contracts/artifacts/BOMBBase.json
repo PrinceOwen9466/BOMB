@@ -728,12 +728,12 @@
 			"inputs": [
 				{
 					"internalType": "uint256",
-					"name": "thresholdPercent",
+					"name": "swapThreshold",
 					"type": "uint256"
 				},
 				{
 					"internalType": "uint256",
-					"name": "amountPercent",
+					"name": "swapAmount",
 					"type": "uint256"
 				},
 				{

@@ -21,13 +21,16 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	uint256 private constant MAX_UINT256 = ~uint256(0);
 	uint256 private constant MAX_SUPPLY = 325 * 10 ** 7 * 10 ** DECIMALS;
 	uint256 private constant INITIAL_SUPPLY = 325 * 10 ** 3 * 10 ** DECIMALS;
+	uint256 internal constant REBASE_INTERVAL = 15 minutes;
+	uint256 internal constant DISTRIBUTION_INTERVAL = 10 minutes;
+	uint256 internal constant THRESHOLD_DIVISOR = 1_000_000;
 
 	address private constant ADDR_ROUTER = 0xd7f655E3376cE2D7A2b08fF01Eb3B1023191A901;
 	address private constant ADDR_FACTORY = 0xF5c7d9733e5f53abCC1695820c4818C59B457C2C;
 	address internal constant ADDR_DEAD = 0x000000000000000000000000000000000000dEaD;
 
 	uint256 public _feePercent = 99;
-	uint256 public _distributionInterval = 10 minutes;
+	uint256 public _distributionInterval = DISTRIBUTION_INTERVAL;
 
 	bool public _autoRebase;
 	bool public _autoSwapBack;
@@ -72,8 +75,6 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_initRebaseStartTime = block.timestamp;
 		_lastRebasedTime = block.timestamp;
 		_isFeeExempt[address(this)] = true;
-
-		// _router = IPancakeSwapRouter(ADDR_ROUTER);
 
 		_balances[msg.sender] = _totalSupply;
 		emit Transfer(address(this), msg.sender, _totalSupply);
@@ -133,7 +134,6 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	}
 
 	function setBotBlacklist(address _botAddress, bool _flag) external onlyOwner {
-		require(isContract(_botAddress), "only contract address, not allowed exteranlly owned account");
 		_blacklist[_botAddress] = _flag;
 	}
 
@@ -141,20 +141,12 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_feePercent = percent;
 	}
 
-	function isContract(address addr) internal view returns (bool) {
-		uint size;
-		assembly {
-			size := extcodesize(addr)
-		}
-		return size > 0;
-	}
-
 	function shouldTakeFee(address from, address to) internal view returns (bool) {
 		return (address(_pair) == from || address(_pair) == to) && !_isFeeExempt[from];
 	}
 
 	function shouldRebase() internal view returns (bool) {
-		return _autoRebase && (_totalSupply < MAX_SUPPLY) && msg.sender != address(_pair) && !_inSwap && block.timestamp >= (_lastRebasedTime + 15 minutes);
+		return _autoRebase && (_totalSupply < MAX_SUPPLY) && msg.sender != address(_pair) && !_inSwap && block.timestamp >= (_lastRebasedTime + REBASE_INTERVAL);
 	}
 
 	function shouldSwapBack() internal view returns (bool) {
@@ -193,10 +185,6 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		}
 	}
 
-	function _setLP(address addr) private {
-		_pair = IPancakeSwapPair(addr);
-	}
-
 	function _tryInitAVAXNative() private {
 		address routerAddr = address(_router);
 		if (routerAddr == address(0)) {
@@ -216,18 +204,14 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_pair = IPancakeSwapPair(addr);
 	}
 
-	function setSwapSettings(uint256 thresholdPercent, uint256 amountPercent, bool swapOnBuys, bool swapOnSells) external onlyOwner {
-		_swapThreshold = (_totalSupply * thresholdPercent) / 100;
-		_swapAmount = (_totalSupply * amountPercent) / 100;
+	function setSwapSettings(uint256 swapThreshold, uint256 swapAmount, bool swapOnBuys, bool swapOnSells) external onlyOwner {
+		_swapThreshold = (_totalSupply * swapThreshold) / THRESHOLD_DIVISOR;
+		_swapAmount = (_totalSupply * swapAmount) / THRESHOLD_DIVISOR;
 
 		_swapOnBuys = swapOnBuys;
 		_swapOnSells = swapOnSells;
 
-		// TODO: Set fee here?
-
 		require(_swapThreshold <= _swapAmount, "Threshold cannot be above amount.");
-		// require(_swapAmount >= _totalSupply / 1_000_000, "Cannot be lower than 0.00001% of total supply.");
-		// require(_swapThreshold >= _totalSupply / 1_000_000, "Cannot be lower than 0.00001% of total supply.");
 	}
 
 	function setDistributeInterval(uint256 interval) external onlyOwner {
