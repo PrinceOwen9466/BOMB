@@ -50,6 +50,7 @@
 		"gasEstimates": null,
 		"methodIdentifiers": {
 			"BLAST()": "97d75776",
+			"_WNative()": "dd985ba7",
 			"_autoDistribute()": "95fe579c",
 			"_autoRebase()": "afb9cf6d",
 			"_autoSwapBack()": "70ee7395",
@@ -211,6 +212,19 @@
 			"outputs": [
 				{
 					"internalType": "contract IBlast",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "_WNative",
+			"outputs": [
+				{
+					"internalType": "contract IERC20",
 					"name": "",
 					"type": "address"
 				}

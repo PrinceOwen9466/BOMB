@@ -197,11 +197,11 @@
 	},
 	"sources": {
 		"contracts/BOMB_flattened.sol": {
-			"keccak256": "0x5ce35036b855b8f3314061661a855ad621a18c62b9a75c620bc66d9e25c83fa8",
+			"keccak256": "0x37cad52adbafa55896730486613a1ed4c5d6bbe0a2de107538b884fabcd5db76",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://f946343b1235b5e6d9463a7b3af5b6bd41aa2ff5e81eb8274d03b846a6fde208",
-				"dweb:/ipfs/QmUdYQ2kXqvQGyJ7sMx9L8M7mWWsVBM8aSYQJodTCuP5Kx"
+				"bzz-raw://1b74cbb7a4bfaea05d8c8e212f192cfee59f16d4e501e99207047fcde253d47f",
+				"dweb:/ipfs/QmbftDCx9tQvDyMRCBockZo9jnrwX4gcpcCnfGLHAgYxqi"
 			]
 		}
 	},

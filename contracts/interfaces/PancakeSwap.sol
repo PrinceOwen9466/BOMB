@@ -218,3 +218,7 @@ interface IPancakeSwapFactory {
 
 	function setFeeToSetter(address) external;
 }
+
+interface IWAVAX_DEX {
+	function WAVAX() external pure returns (address);
+}

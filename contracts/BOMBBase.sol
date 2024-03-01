@@ -17,6 +17,7 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	uint8 private constant DECIMALS = 5;
 	uint8 internal constant RATE_DECIMALS = 7;
 
+	uint256 private constant INITIAL_TAX_PERCENTAGE = 10;
 	uint256 private constant MAX_UINT256 = ~uint256(0);
 	uint256 private constant MAX_SUPPLY = 325 * 10 ** 7 * 10 ** DECIMALS;
 	uint256 private constant INITIAL_SUPPLY = 325 * 10 ** 3 * 10 ** DECIMALS;
@@ -49,6 +50,7 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 
 	IPancakeSwapRouter internal _router;
 	IPancakeSwapPair internal _pair;
+	IERC20 public _WNative;
 
 	bool internal _inSwap = false;
 	modifier swapping() {
@@ -161,14 +163,50 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 	}
 
 	function setRouter(address addr) external onlyOwner {
+		bool init = address(_router) == address(0);
 		_router = IPancakeSwapRouter(addr);
-		address pairAddr = IPancakeSwapFactory(_router.factory()).createPair(_router.WETH(), address(this));
 
-		_pair = IPancakeSwapPair(pairAddr);
+		try _router.WETH() returns (address weth) {
+			_WNative = IERC20(weth);
+		} catch {
+			_tryInitAVAXNative();
+		}
 
-		_autoRebase = true;
-		_autoSwapBack = true;
-		_autoDistribute = true;
+		address native = address(_WNative);
+
+		if (address(_pair) == address(0) && native != address(0)) {
+			IPancakeSwapFactory factory = IPancakeSwapFactory(_router.factory());
+
+			try factory.createPair(native, address(this)) returns (address pairAddr) {
+				_pair = IPancakeSwapPair(pairAddr);
+			} catch {}
+		}
+
+		if (init) {
+			_autoRebase = true;
+			_autoSwapBack = true;
+			_autoDistribute = true;
+			_feePercent = INITIAL_TAX_PERCENTAGE;
+		}
+	}
+
+	function _setLP(address addr) private {
+		_pair = IPancakeSwapPair(addr);
+	}
+
+	function _tryInitAVAXNative() private {
+		address routerAddr = address(_router);
+		if (routerAddr == address(0)) {
+			return;
+		}
+
+		IWAVAX_DEX dex = IWAVAX_DEX(routerAddr);
+
+		try dex.WAVAX() returns (address wavax) {
+			_WNative = IERC20(wavax);
+		} catch {
+			// Add any additional currencies here
+		}
 	}
 
 	function setLP(address addr) external onlyOwner {
@@ -192,4 +230,5 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 
 	event LogRebase(uint256 indexed epoch, uint256 totalSupply);
 	event LogSwapBack(uint256 amount);
+	event WrappedTransfer(address indexed to, uint256 amount);
 }

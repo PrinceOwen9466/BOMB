@@ -103,7 +103,7 @@ contract BOMB is BOMBBase, NativeTransferable {
 		}
 
 		if (shouldDistribute()) {
-			_distributeNative(address(this).balance);
+			_distributeWNative();
 		}
 
 		_subBalance(from, amount);
@@ -143,6 +143,36 @@ contract BOMB is BOMBBase, NativeTransferable {
 
 			if (cut > 0) {
 				_transferNative(holder, cut);
+			}
+		}
+	}
+
+	function _distributeWNative() internal {
+		if (address(_WNative) == address(0)) {
+			return;
+		}
+
+		uint256 amount = _WNative.balanceOf(address(this));
+		if (amount <= 0) {
+			return;
+		}
+
+		address holder;
+		uint256 cut;
+
+		for (uint i = 0; i < _holders.length; i++) {
+			holder = _holders[i];
+
+			if (!_isExternalAddr(holder)) {
+				continue;
+			}
+
+			cut = amount.mul(_balances[holder]).div(_totalSupply);
+
+			if (cut > 0) {
+				if (_WNative.transfer(holder, cut)) {
+					emit WrappedTransfer(holder, cut);
+				}
 			}
 		}
 	}
@@ -222,7 +252,7 @@ contract BOMB is BOMBBase, NativeTransferable {
 
 		address[] memory path = new address[](2);
 		path[0] = address(this);
-		path[1] = _router.WETH();
+		path[1] = address(_WNative);
 
 		try _router.swapExactTokensForETHSupportingFeeOnTransferTokens(swapAmount, 0, path, address(this), block.timestamp) {} catch {
 			return;

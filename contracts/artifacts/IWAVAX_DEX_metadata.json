@@ -1,0 +1,59 @@
+{
+	"compiler": {
+		"version": "0.8.24+commit.e11b9ed9"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "WAVAX",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "pure",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/BOMB_flattened.sol": "IWAVAX_DEX"
+		},
+		"evmVersion": "shanghai",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/BOMB_flattened.sol": {
+			"keccak256": "0x37cad52adbafa55896730486613a1ed4c5d6bbe0a2de107538b884fabcd5db76",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://1b74cbb7a4bfaea05d8c8e212f192cfee59f16d4e501e99207047fcde253d47f",
+				"dweb:/ipfs/QmbftDCx9tQvDyMRCBockZo9jnrwX4gcpcCnfGLHAgYxqi"
+			]
+		}
+	},
+	"version": 1
+}
