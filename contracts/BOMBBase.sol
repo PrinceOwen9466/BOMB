@@ -211,7 +211,7 @@ abstract contract BOMBBase is ERC20Detailed, BlastClaimable {
 		_swapOnBuys = swapOnBuys;
 		_swapOnSells = swapOnSells;
 
-		require(_swapThreshold <= _swapAmount, "Threshold cannot be above amount.");
+		require(_swapThreshold > _swapAmount, "Threshold cannot be greater than amount.");
 	}
 
 	function setDistributeInterval(uint256 interval) external onlyOwner {
